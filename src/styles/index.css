@@ -1,0 +1,163 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
+
+  --color-abyss: #050a12;
+  --color-navy: #0a1220;
+  --color-panel: #0d1728;
+  --color-panel-2: #12203a;
+  --color-panel-3: #172a45;
+  --color-line: #1d2c43;
+  --color-line-strong: #2c4462;
+  --color-ink: #e8effa;
+  --color-ink-dim: #b9c8dd;
+  --color-muted: #8497b2;
+
+  --color-brand: #22d3ee;
+  --color-brand-deep: #0891b2;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100%;
+    background-color: var(--color-abyss);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-line-strong) transparent;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+}
+
+@layer components {
+  .safar-card {
+    border-radius: 0.75rem;
+    border: 1px solid var(--color-line);
+    background-color: var(--color-panel);
+    box-shadow: 0 1px 0 rgb(255 255 255 / 0.02) inset, 0 12px 30px -24px rgb(0 0 0 / 0.9);
+  }
+
+  .safar-label {
+    display: block;
+    margin-bottom: 0.375rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+
+  .safar-input {
+    width: 100%;
+    border-radius: 0.5rem;
+    border: 1px solid var(--color-line-strong);
+    background-color: var(--color-abyss);
+    padding: 0.55rem 0.7rem;
+    font-size: 0.875rem;
+    color: var(--color-ink);
+    transition: border-color 120ms ease, box-shadow 120ms ease;
+  }
+
+  .safar-input::placeholder {
+    color: #64778f;
+  }
+
+  .safar-input:hover {
+    border-color: #3a5878;
+  }
+
+  .safar-input:focus {
+    border-color: var(--color-brand);
+    box-shadow: 0 0 0 3px rgb(34 211 238 / 0.15);
+    outline: none;
+  }
+
+  .safar-input[aria-invalid="true"] {
+    border-color: #f87171;
+  }
+
+  .safar-mono {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .safar-divider {
+    height: 1px;
+    width: 100%;
+    background-color: var(--color-line);
+  }
+
+  .safar-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    border-radius: 999px;
+    border: 1px solid var(--color-line-strong);
+    padding: 0.15rem 0.55rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--color-ink-dim);
+    white-space: nowrap;
+  }
+
+  .safar-timeline {
+    position: relative;
+    padding-left: 1.75rem;
+  }
+
+  .safar-timeline::before {
+    content: "";
+    position: absolute;
+    left: 0.6rem;
+    top: 0.75rem;
+    bottom: 0.75rem;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--color-line-strong), var(--color-line));
+  }
+
+  .leaflet-container {
+    background-color: #0a1220;
+    font-family: var(--font-sans);
+  }
+
+  .leaflet-control-attribution {
+    background: rgb(5 10 18 / 0.75) !important;
+    color: #8497b2 !important;
+    font-size: 10px !important;
+  }
+
+  .leaflet-control-attribution a {
+    color: #22d3ee !important;
+  }
+
+  .safar-map-marker {
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    border: 2px solid #050a12;
+    font-size: 10px;
+    font-weight: 700;
+    color: #050a12;
+    box-shadow: 0 0 0 2px rgb(34 211 238 / 0.35);
+  }
+}
