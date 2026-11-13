@@ -1,4 +1,5 @@
 import type { AuditEvent, DisruptionReport, SafarState, StudentTravelRequest } from "../domain/types";
+import type { EmergencyPlan } from "../domain/types/emergency";
 import { createSeedState } from "../data/seed";
 
 /**
@@ -13,6 +14,8 @@ export type SafarAction =
   | { type: "HYDRATE"; state: SafarState }
   | { type: "SUBMIT_DISRUPTION_REPORT"; report: DisruptionReport; audit: AuditEvent }
   | { type: "SUBMIT_TRAVEL_REQUEST"; request: StudentTravelRequest; audit: AuditEvent }
+  | { type: "RUN_EMERGENCY_SCENARIO"; plan: EmergencyPlan }
+  | { type: "RESET_EMERGENCY_SCENARIO" }
   | { type: "RESET_SCENARIO" };
 
 export function reducer(state: SafarState, action: SafarAction): SafarState {
@@ -33,6 +36,42 @@ export function reducer(state: SafarState, action: SafarAction): SafarState {
         travelRequests: [action.request, ...state.travelRequests],
         auditEvents: [action.audit, ...state.auditEvents],
       };
+
+    /**
+     * Emergency run. Only scenario *inputs* plus the derived fleet changes are
+     * stored; allocations are recomputed from those inputs, so running the
+     * scenario again replaces the previous run instead of appending students.
+     * Alert IDs are stable, so a repeat run cannot duplicate authority alerts.
+     */
+    case "RUN_EMERGENCY_SCENARIO": {
+      const alertIds = new Set(action.plan.alerts.map((alert) => alert.id));
+      return {
+        ...state,
+        emergency: action.plan.emergency,
+        buses: action.plan.buses,
+        alerts: [
+          ...action.plan.alerts,
+          ...state.alerts.filter((alert) => !alertIds.has(alert.id)),
+        ],
+        auditEvents: [action.plan.audit, ...state.auditEvents],
+      };
+    }
+
+    /**
+     * Reset restores the original fleet (availability and composition), the
+     * original road conditions and the original allocations, while preserving
+     * unrelated student data such as reports and travel requests.
+     */
+    case "RESET_EMERGENCY_SCENARIO": {
+      const seed = createSeedState();
+      return {
+        ...state,
+        emergency: undefined,
+        buses: seed.buses,
+        alerts: state.alerts.filter((alert) => !alert.id.startsWith("alert-emergency-")),
+        auditEvents: state.auditEvents.filter((event) => !event.action.startsWith("EMERGENCY_")),
+      };
+    }
 
     case "RESET_SCENARIO":
       return createSeedState();

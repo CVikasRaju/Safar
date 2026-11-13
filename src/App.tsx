@@ -6,6 +6,9 @@ import { TravelSubmissionsPage } from "./features/student/pages/TravelSubmission
 import { ReportDisruptionPage } from "./features/student/pages/ReportDisruptionPage";
 import { JourneyAlertsPage } from "./features/student/pages/JourneyAlertsPage";
 import { ControlCentreStatusPage } from "./features/student/pages/ControlCentreStatusPage";
+import { ControlCentreDashboard } from "./features/control-centre/pages/ControlCentreDashboard";
+import { ControlCentreEmergencyPage } from "./features/control-centre/pages/ControlCentreEmergencyPage";
+import { ControlCentrePredictionPage } from "./features/control-centre/pages/ControlCentrePredictionPage";
 
 export default function App() {
   return (
@@ -17,7 +20,10 @@ export default function App() {
         <Route path="student/submissions" element={<TravelSubmissionsPage />} />
         <Route path="student/report" element={<ReportDisruptionPage />} />
         <Route path="student/alerts" element={<JourneyAlertsPage />} />
-        <Route path="control-centre" element={<ControlCentreStatusPage />} />
+        <Route path="control-centre" element={<ControlCentreDashboard />} />
+        <Route path="control-centre/emergency" element={<ControlCentreEmergencyPage />} />
+        <Route path="control-centre/prediction" element={<ControlCentrePredictionPage />} />
+        <Route path="control-centre/integration" element={<ControlCentreStatusPage />} />
         <Route path="*" element={<Navigate to="/student" replace />} />
       </Route>
     </Routes>

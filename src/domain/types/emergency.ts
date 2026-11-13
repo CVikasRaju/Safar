@@ -1,4 +1,4 @@
-import type { Bus, Provenance, SafarState } from "./index";
+import type { Alert, AuditEvent, Bus, Provenance, SafarState } from "./index";
 
 /**
  * Emergency intelligence types.
@@ -113,7 +113,7 @@ export interface SeatBlock {
   used: number;
   kind: SeatBlockKind;
   /** Documented route seat supply vs physical relief bus capacity. */
-  basis: "ROUTE_SEAT_SUPPLY" | "RELIEF_BUS_CAPACITY";
+  basis: "ROUTE_SEAT_SUPPLY" | "RELIEF_BUS_CAPACITY" | "PHYSICAL_BUS_CAPACITY";
 }
 
 export interface AllocationAssignment {
@@ -125,6 +125,8 @@ export interface AllocationAssignment {
   alternativePickup: boolean;
   walkingMetresApprox?: number;
   walkingMinutes?: number;
+  /** True when the walk to the replacement pickup exceeds the 2.5 km limit. */
+  walkingExceedsLimit?: boolean;
   busId: string;
   busRegistration: string;
   routeId: string;
@@ -240,23 +242,6 @@ export interface BeforeAfterComparison {
 export interface EmergencyPlan {
   emergency: EmergencyState;
   buses: Bus[];
-  audit: {
-    id: string;
-    actor: "AUTHORITY_DEMO";
-    action: string;
-    at: string;
-    recordIds: string[];
-    reason?: string;
-  };
-  alerts: Array<{
-    id: string;
-    audience: "AUTHORITY";
-    severity: "CRITICAL" | "WARNING" | "SUCCESS" | "INFO";
-    title: string;
-    body: string;
-    createdAt: string;
-    relatedRouteIds: string[];
-    relatedIncidentId?: string;
-    provenance: Provenance;
-  }>;
+  audit: AuditEvent;
+  alerts: Alert[];
 }

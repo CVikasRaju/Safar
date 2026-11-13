@@ -7,6 +7,7 @@ import {
   ClipboardList,
   LayoutDashboard,
   Menu,
+  Radar,
   Route as RouteIcon,
   ShieldCheck,
   X,
@@ -26,23 +27,41 @@ const STUDENT_NAV = [
   { to: "/student/alerts", label: "Journey Alerts", icon: Bell, end: false },
 ];
 
+const CONTROL_NAV = [
+  { to: "/control-centre", label: "Emergency Overview", icon: ShieldCheck, end: true },
+  { to: "/control-centre/emergency", label: "Allocation & Routes", icon: Bus, end: false },
+  { to: "/control-centre/prediction", label: "Event Prediction", icon: Radar, end: false },
+  { to: "/control-centre/integration", label: "Shared State", icon: ClipboardList, end: false },
+];
+
 const PAGE_TITLES: Record<string, string> = {
   "/student": "Student Dashboard",
   "/student/planner": "Journey Planner",
   "/student/submissions": "My Travel Plans",
   "/student/report": "Report a Disruption",
   "/student/alerts": "Journey Alerts",
-  "/control-centre": "Control Centre",
+  "/control-centre": "Emergency Overview",
+  "/control-centre/emergency": "Allocation & Routes",
+  "/control-centre/prediction": "Event Prediction",
+  "/control-centre/integration": "Shared Integration State",
 };
 
-function NavItems({ onNavigate }: { onNavigate?: () => void }) {
+function NavItems({
+  items,
+  onNavigate,
+  ariaLabel,
+}: {
+  items: typeof STUDENT_NAV;
+  onNavigate?: () => void;
+  ariaLabel: string;
+}) {
   const alerts = useStudentAlerts();
   const { isRead } = useAlertReadState();
   const unread = alerts.filter((alert) => !isRead(alert.id)).length;
 
   return (
-    <nav aria-label="Student portal sections" className="flex flex-col gap-1">
-      {STUDENT_NAV.map((item) => {
+    <nav aria-label={ariaLabel} className="flex flex-col gap-1">
+      {items.map((item) => {
         const Icon = item.icon;
         return (
           <NavLink
@@ -120,7 +139,10 @@ export function AppShell() {
     setMobileOpen(false);
   }, [location.pathname]);
 
-  const title = PAGE_TITLES[location.pathname] ?? "Student Portal";
+  const isControl = location.pathname.startsWith("/control-centre");
+  const workspaceLabel = isControl ? "Control Centre" : "Student Portal";
+  const navItems = isControl ? CONTROL_NAV : STUDENT_NAV;
+  const title = PAGE_TITLES[location.pathname] ?? workspaceLabel;
 
   return (
     <div className="min-h-screen bg-abyss text-ink">
@@ -140,13 +162,16 @@ export function AppShell() {
             </span>
             <div>
               <p className="text-sm font-bold tracking-[0.14em] text-ink">SAFAR</p>
-              <p className="text-[10px] text-muted">Student Portal</p>
+              <p className="text-[10px] text-muted">{workspaceLabel}</p>
             </div>
           </div>
           <p className="mt-2 text-[10px] leading-relaxed text-muted">{SAFAR_TAGLINE}</p>
         </div>
         <div className="mt-5 flex-1 overflow-y-auto">
-          <NavItems />
+          <NavItems
+            items={navItems}
+            ariaLabel={isControl ? "Control Centre sections" : "Student portal sections"}
+          />
         </div>
         <WorkspaceSwitch />
         <div className="mt-3 rounded-lg border border-amber-400/25 bg-amber-400/5 p-2">
@@ -174,7 +199,7 @@ export function AppShell() {
         </button>
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold">{title}</p>
-          <p className="truncate text-[10px] text-muted">SAFAR · Student Portal</p>
+          <p className="truncate text-[10px] text-muted">SAFAR · {workspaceLabel}</p>
         </div>
         <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-amber-300">
           Demo data
@@ -201,7 +226,11 @@ export function AppShell() {
                 <X size={15} />
               </button>
             </div>
-            <NavItems onNavigate={() => setMobileOpen(false)} />
+            <NavItems
+              items={navItems}
+              onNavigate={() => setMobileOpen(false)}
+              ariaLabel={isControl ? "Control Centre sections" : "Student portal sections"}
+            />
             <WorkspaceSwitch />
           </div>
         </div>
@@ -211,7 +240,7 @@ export function AppShell() {
         <div className="hidden items-center justify-between border-b border-line bg-navy/60 px-6 py-3 lg:flex">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">
-              Student Portal
+              {workspaceLabel}
             </p>
             <h1 className="text-base font-semibold tracking-tight text-ink">{title}</h1>
           </div>

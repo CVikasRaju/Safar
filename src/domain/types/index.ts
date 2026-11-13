@@ -276,6 +276,12 @@ export interface ScenarioState {
 
 export interface SafarState {
   schemaVersion: number;
+  /**
+   * Active emergency scenario inputs, added additively by the emergency
+   * intelligence engine. Allocations are recomputed from these inputs rather
+   * than stored, so repeated runs cannot duplicate assignments.
+   */
+  emergency?: import("./emergency").EmergencyState;
   seedVersion: string;
   villages: Village[];
   destinations: Destination[];

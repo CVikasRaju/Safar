@@ -3,10 +3,16 @@
 Functional student-facing side of **SAFAR — AI-Powered Rural Student Transport Intelligence System**
 (*Predict Disruptions. Protect Student Journeys. Connect Every Village.*).
 
-This branch (`feature/student-portal`) implements **Member 2's module only**: the Student Portal,
-journey planning, journey details, map visualisation, disruption reporting, travel submissions and
-state-derived student alerts. The Government Control Centre (report review, incident confirmation,
-fleet/replacement, event intelligence, demand analytics) is delivered by the other team members.
+The Student Portal (journey planning, journey details, map visualisation, disruption reporting,
+travel submissions and state-derived student alerts) was delivered first on `feature/student-portal`.
+
+This branch (`feature/emergency-intelligence-engine`) adds the **advanced emergency intelligence
+engine** on top of that shared foundation: a combined four-condition emergency scenario, a real
+student-to-bus allocation engine, flooded-road alternative routing with walking legs, examination
+prioritisation, before/after comparison, explainable decisions, advance event prediction and the
+Control Centre interface. See [`EMERGENCY_INTELLIGENCE.md`](EMERGENCY_INTELLIGENCE.md) for the design,
+rules and test matrix. Other authority workflows (report review, incident confirmation, replacement
+approval) remain the other team members' scope and are not faked here.
 
 All route, timetable, demand, delay, event and reliability values are **illustrative demo data**.
 Nothing here is live GPS, an official schedule or a validated traffic forecast.
@@ -16,7 +22,7 @@ Nothing here is live GPS, an official schedule or a validated traffic forecast.
 ```bash
 npm install
 npm run dev        # http://localhost:5173
-npm run test       # 61 domain/integration tests (vitest)
+npm run test       # 75 domain/integration tests (vitest)
 npm run typecheck  # tsc --noEmit
 npm run build      # production build
 ```
@@ -33,7 +39,10 @@ OpenStreetMap tiles when they load and falls back to a local schematic when they
 | `/student/submissions` | My Travel Plans | Intended-journey submission, own submissions with expected route, aggregated demand from this session |
 | `/student/report` | Report a Disruption | `REPORT BUS NOT ARRIVED / DISRUPTION` form, reference ID, UNVERIFIED status, own report history |
 | `/student/alerts` | Journey Alerts | Incident, report, replacement, event, recommendation-change and service alerts derived from shared state |
-| `/control-centre` | Workspace status | Honest hand-off page describing what this module publishes into the shared state |
+| `/control-centre` | Emergency overview | RUN / RESET scenario actions, 10 emergency KPIs, the four applied conditions, affected villages/routes, fleet status, before/after table, explainable decisions |
+| `/control-centre/emergency` | Allocation & routes | Seat blocks, alternative routes, replacement pickups with walking distances, exam priority results, every assignment with its explanation, unserved groups with reasons |
+| `/control-centre/prediction` | Event prediction | Predicted events with provenance, lead time, affected network, recommended alternatives and disclaimers |
+| `/control-centre/integration` | Shared state | Honest hand-off page describing what the Student Portal publishes into the shared state |
 
 ### Journey planner behaviour (docs/04)
 
@@ -100,9 +109,36 @@ data is collected.
 - `src/features/student/alerts.ts` — `buildStudentAlerts` (state-derived student feed).
 - `src/features/journeys/mapLayout.ts` — map plan + schematic projection (pure, testable).
 
+## Emergency intelligence
+
+`RUN EMERGENCY SCENARIO` on `/control-centre` applies four conditions simultaneously — two bus
+breakdowns, exactly +40% demand, a flooded road and examinations within two hours — and then
+recalculates everything from the modified state:
+
+- **Allocation engine** (`src/domain/emergency/allocation.ts`): excludes unavailable buses, builds
+  seat blocks from documented route seats and relief-bus capacity, orders groups by examination
+  priority → deadline → breakdown → flood exposure → standard demand, respects capacity, assigns the
+  best compatible route, calculates replacement pickups and walking legs, and reports every unserved
+  group with a reason. Every assignment carries an explanation generated from those numbers.
+- **Road intelligence** (`src/domain/emergency/roads.ts`): maps routes to the simulated road network
+  and finds detours with a shortest-path search that can never traverse a closed road
+  (R102/R103/R104 detour at +3.2 km / +7 min). The journey planner also adds that detour time to
+  affected routes during an active emergency.
+- **Scenario and comparison** (`src/domain/emergency/scenario.ts`): stores only scenario inputs, so
+  allocations are recomputed rather than persisted and repeat runs cannot duplicate students. The
+  before/after table is produced by running the same allocator over a restored "before" model.
+- **Advance prediction** (`src/domain/emergency/eventPrediction.ts`): predicts roughly a day ahead and
+  labels every item as verified, student-reported, AI-generated, simulated or historical.
+- **State actions**: `RUN_EMERGENCY_SCENARIO` and `RESET_EMERGENCY_SCENARIO` extend the existing
+  reducer. Reset restores the seed fleet and clears emergency alerts while keeping student data.
+
+Scenario figures on the demo network: 420 baseline + 168 surge = 588 students, 324 seats after the
+two breakdowns (documented seats + relief buses), 63/63 examination students seated, 196 students on
+relief buses, 18 on alternative pickups, 264 unserved with reasons.
+
 ## Tests performed
 
-`npm run test` → **61 passed** across:
+`npm run test` → **75 passed** across:
 
 - `tests/seed.test.ts` — referential integrity, R101–R104, KA-21-AB-102 on R101, 420/350/70 demand,
   chronology, fresh object graph per reset.
@@ -115,6 +151,11 @@ data is collected.
 - `tests/studentAlerts.test.ts` — report/incident/replacement/event/recommendation-change alerts,
   session isolation, uniqueness and ordering.
 - `tests/mapLayout.test.ts` — markers, bus/walk paths, event marker, schematic bounds.
+- `tests/emergencyEngine.test.ts` — the 14 required emergency tests: simultaneous breakdowns, exact
+  +40% demand, valid flooded-road alternatives, no alternative containing the blocked road,
+  examination priority, capacity limits, no assignment to unavailable buses, no duplicate
+  assignments, walking distances from real stop coordinates, unserved identification, calculated
+  before/after values, reset, repeatability and continued operation of existing SAFAR features.
 
 Also executed: `npm run typecheck` (clean) and `npm run build` (succeeds; bundle-size warning only).
 
@@ -127,8 +168,13 @@ Also executed: `npm run typecheck` (clean) and `npm run build` (succeeds; bundle
 - Delay from a confirmed incident uses a documented prototype severity→minutes conversion.
 - Seed event-route impact records are demo values; recalculation belongs to Member 3. The Student
   Portal only reads them, and the UI labels them as predicted, not verified.
-- The Control Centre page is a status/hand-off page by design; authority workflows are not
-  implemented here.
+- The emergency allocation is a deterministic greedy pass over priority tiers, not a proven optimal
+  solution.
+- Route seat supply uses documented planning figures (which can exceed one bus's physical seats);
+  relief buses use real capacity. Both are labelled in the Control Centre.
+- Other authority workflows (report review, incident confirmation, replacement approval) remain
+  unimplemented by design, so reports stay UNVERIFIED and no incident is created outside the
+  simulated emergency.
 - Map tiles need network access; without them the schematic fallback is used (verified in code and
   unit tests, not visually in a browser).
 - End-to-end integration with the other three modules cannot be claimed until Member 1's foundation
@@ -136,4 +182,5 @@ Also executed: `npm run typecheck` (clean) and `npm run build` (succeeds; bundle
 
 ## Branch and delivery
 
-Target branch: `feature/student-portal`. Do not push to `main`. No secrets are stored in the repo.
+Working branch: `feature/emergency-intelligence-engine`, based on `feature/student-portal`.
+No secrets are stored in the repo, and no external service or API key is required.
