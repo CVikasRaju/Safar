@@ -1,0 +1,16 @@
+{
+  "name": "safar",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "SAFAR — rural student transport intelligence. Shared domain, services and state contracts (Agent 3 / backend).",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.9"
+  }
+}
