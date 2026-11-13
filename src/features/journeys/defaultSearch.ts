@@ -7,9 +7,13 @@ import { DEMO_SESSION } from "../student/session";
  * travelling to Puttur Government College, required to arrive before 09:00.
  * The date comes from the configurable demo scenario date.
  */
-export function defaultJourneyRequest(state: SafarState): JourneySearchRequest {
-  const homeVillage = state.villages.some((village) => village.id === DEMO_SESSION.homeVillageId)
-    ? DEMO_SESSION.homeVillageId
+export function defaultJourneyRequest(
+  state: SafarState,
+  homeVillageId?: string,
+): JourneySearchRequest {
+  const preferredVillageId = homeVillageId ?? DEMO_SESSION.homeVillageId;
+  const homeVillage = state.villages.some((village) => village.id === preferredVillageId)
+    ? preferredVillageId
     : (state.villages[0]?.id ?? "");
   const college =
     state.destinations.find((destination) => destination.id === "d-pgc") ??

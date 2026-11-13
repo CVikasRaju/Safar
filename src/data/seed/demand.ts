@@ -28,6 +28,12 @@ export const DEMAND_SEED: DemandSeedRecord[] = [
   },
 ];
 
+export const SEED_DEMAND = DEMAND_SEED;
+
+export const DEMAND_TOTAL_EXPECTED = 420;
+export const DEMAND_TOTAL_SEATS = 350;
+export const DEMAND_TOTAL_SHORTAGE = 70;
+
 export const DEMAND_SEED_TOTALS = DEMAND_SEED.reduce(
   (totals, record) => ({
     expectedStudents: totals.expectedStudents + record.expectedStudents,

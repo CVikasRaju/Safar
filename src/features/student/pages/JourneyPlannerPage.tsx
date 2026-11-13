@@ -23,6 +23,7 @@ import { JourneyComparison } from "../../journeys/components/JourneyComparison";
 import { JourneyDetails } from "../../journeys/components/JourneyDetails";
 import { defaultJourneyRequest, plannerHref } from "../../journeys/defaultSearch";
 import { saveWatch, watchFromJourney } from "../journeyWatch";
+import { useStudentSession } from "../session";
 
 function readRequest(params: URLSearchParams, fallback: JourneySearchRequest, state: ReturnType<typeof useSafarState>["state"]): JourneySearchRequest {
   const origin = params.get("origin");
@@ -46,11 +47,15 @@ function readRequest(params: URLSearchParams, fallback: JourneySearchRequest, st
 
 export function JourneyPlannerPage() {
   const { state } = useSafarState();
+  const session = useStudentSession();
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedId, setSelectedId] = useState<string | undefined>();
   const [notice, setNotice] = useState<string | undefined>();
 
-  const fallback = useMemo(() => defaultJourneyRequest(state), [state]);
+  const fallback = useMemo(
+    () => defaultJourneyRequest(state, session.homeVillageId),
+    [state, session.homeVillageId],
+  );
   const request = useMemo(() => readRequest(searchParams, fallback, state), [searchParams, fallback, state]);
   const plan = useMemo(() => generateJourneyOptions(state, request), [state, request]);
 

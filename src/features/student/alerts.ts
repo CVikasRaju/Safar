@@ -175,13 +175,15 @@ export function buildStudentAlerts({
     const summary = impacts
       .map((impact) => `${impact.routeId}: ${impact.riskLevel.toLowerCase()} impact (${impact.impactScore}/100)`)
       .join(" · ");
+    const windowStart = event.impactWindow?.start ?? `${event.date}T${event.startTime}:00`;
+    const loc = event.locationLabel ?? event.location ?? "Puttur";
     alerts.push({
       id: `event-${event.id}`,
       category: "EVENT",
       severity: "WARNING",
       title: `PREDICTED EVENT IMPACT — ${EVENT_CATEGORY_LABELS[event.category] ?? event.category}`,
-      body: `${event.name} on ${event.date}, ${event.startTime}–${event.endTime} at ${event.locationLabel}. ${summary || "Route impact is under review."} This is a prediction, not a verified road closure.`,
-      createdAt: event.impactWindow.start,
+      body: `${event.name} on ${event.date}, ${event.startTime}–${event.endTime} at ${loc}. ${summary || "Route impact is under review."} This is a prediction, not a verified road closure.`,
+      createdAt: windowStart,
       routeIds: affected,
       provenance: "DEMO",
       actionHref: "/student/planner",

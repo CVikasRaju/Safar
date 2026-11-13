@@ -1,139 +1,176 @@
-# SAFAR — Student Portal and Journey Experience (Member 2)
+# SAFAR
 
-Functional student-facing side of **SAFAR — AI-Powered Rural Student Transport Intelligence System**
-(*Predict Disruptions. Protect Student Journeys. Connect Every Village.*).
+**AI-Powered Rural Student Transport Intelligence System**
 
-This branch (`feature/student-portal`) implements **Member 2's module only**: the Student Portal,
-journey planning, journey details, map visualisation, disruption reporting, travel submissions and
-state-derived student alerts. The Government Control Centre (report review, incident confirmation,
-fleet/replacement, event intelligence, demand analytics) is delivered by the other team members.
+*Predict Disruptions. Protect Student Journeys. Connect Every Village.*
 
-All route, timetable, demand, delay, event and reliability values are **illustrative demo data**.
-Nothing here is live GPS, an official schedule or a validated traffic forecast.
+SAFAR is a local-first web prototype for rural student transport around Puttur, Karnataka. It gives students a journey planner, live disruption reporting and journey alerts, and gives transport authorities a control centre for fleet status, breakdown response, replacement buses, event prediction and emergency allocation.
 
-## Run it
+The prototype runs entirely in the browser with a shared, persisted application state. There is no backend, database, login or external API, and no API keys are required.
+
+> **Demo data notice:** every route, timetable, fare, demand figure, delay, reliability score, event and map position in this project is illustrative prototype data. Nothing here is live GPS, an official schedule, a validated traffic forecast or a trained-machine-learning prediction.
+
+---
+
+## What is implemented
+
+### Student Portal
+
+| Route | Screen | What it does |
+|---|---|---|
+| `/student` | Dashboard | Quick journey search, next planned journey, service status and latest alerts |
+| `/student/planner` | Journey Planner | Search by origin, destination and required arrival time; three independently ranked journeys, comparison table, itinerary, map and reliability breakdown |
+| `/student/submissions` | My Travel Plans | Submit an intended journey and review the plans submitted in this demo session |
+| `/student/report` | Report a Disruption | Report a bus that did not arrive; creates a reference ID and an `UNVERIFIED` report |
+| `/student/alerts` | Journey Alerts | Alerts derived from reports, incidents, replacements, events and reliability changes |
+
+The planner produces **Fastest**, **Most Reliable** and **Fewest Transfers** options from the shared timetable. It validates stop order, service times, transfer buffers and arrival deadlines, excludes unavailable or maintenance buses, and supports at most one transfer. If the same journey wins several categories it says so rather than inventing alternatives, and journeys that arrive late are shown separately and never recommended.
+
+### Government Control Centre
+
+| Route | Screen | What it does |
+|---|---|---|
+| `/control-centre` | Fleet & Operations | Fleet metrics and status, bus details, simulated breakdowns, replacement recommendations, approval or rejection, and reset |
+| `/control-centre/emergency` | Allocation & Routes | Emergency seat allocation, exam priority, alternative routes and detours, replacement pickups and walking legs, with an explanation for every assignment |
+| `/control-centre/scenario` | Emergency Scenario | Runs the four-condition emergency and shows KPIs and a calculated before/after comparison |
+| `/control-centre/prediction` | Event Prediction | Advance event predictions with provenance, lead time, affected network and alternatives |
+| `/control-centre/integration` | Shared State & Logs | What each module publishes into shared state, plus the audit trail |
+
+**Fleet and replacement.** A simulated breakdown marks the bus unavailable and generates a *recommendation*, never an allocation. Only eligible buses are ranked; the authority can approve a candidate, which records the assignment and increases route capacity, or reject it with a reason for the audit log. A recommendation is not an incident confirmation and a breakdown simulation is clearly labelled as a simulation.
+
+**Emergency scenario.** `RUN EMERGENCY SCENARIO` applies four conditions at once: two bus breakdowns, an exact +40% demand surge, a flooded road, and examinations within two hours. The allocation engine excludes unavailable buses, seats examination students first, respects capacity, assigns alternative routes that never cross the closed road, computes replacement pickups and walking distances, and reports every unserved group with a reason. Reset restores the seed fleet and clears emergency alerts while keeping student submissions.
+
+### Shared intelligence
+
+- **Journey planning** works from the shared route, stop, timetable and bus records — not a separate mock list.
+- **Reliability** is an illustrative 0–100 score: `clamp(100 − penalties, 0, 100)` with capped penalties for delay, event impact, transfer waiting, connection buffer, bus availability and transfer count. The required disclaimer is shown wherever a score appears:
+
+  > Illustrative prototype reliability score. Not a statistically validated probability.
+
+- **Event impact** combines crowd intensity, proximity, time overlap, route importance and duration, renormalises when an input is missing, and labels every estimate.
+- **Demand and capacity** preserve the seeded baseline of **420 expected students / 350 seats / 70-seat network shortage** and allocate travel intent once per submission.
+- **Maps** use Leaflet with OpenStreetMap tiles and fall back to a local schematic when tiles are unavailable. Bus lines and walking legs are labelled as schematic, not road geometry.
+
+---
+
+## Tech stack
+
+- React 19 + TypeScript 5.9
+- Vite 7
+- React Router 7
+- Tailwind CSS 4
+- Leaflet / OpenStreetMap
+- Recharts
+- Lucide icons
+- Vitest for domain and integration tests
+
+---
+
+## Run locally
+
+Requires **Node.js 20+**.
 
 ```bash
 npm install
 npm run dev        # http://localhost:5173
-npm run test       # 61 domain/integration tests (vitest)
-npm run typecheck  # tsc --noEmit
-npm run build      # production build
 ```
 
-Node 20+ is sufficient. No API keys, `.env` values or external services are required. The map uses
-OpenStreetMap tiles when they load and falls back to a local schematic when they do not.
+Other scripts:
 
-## What is implemented
+```bash
+npm run build      # type-check and production build
+npm run preview    # preview the production build
+npm run test       # run the Vitest suite once
+npm run test:watch # watch mode
+npm run typecheck  # tsc --noEmit
+```
 
-| Route | Screen | Contents |
-|---|---|---|
-| `/student` | Student dashboard | Quick journey search, next planned journey, route/journey status, latest alerts, reporting CTA |
-| `/student/planner` | Journey Planner | Search form, three independently ranked recommendations, full comparison table, chronological itinerary, map/schematic, reliability breakdown, late alternatives, honest no-route state |
-| `/student/submissions` | My Travel Plans | Intended-journey submission, own submissions with expected route, aggregated demand from this session |
-| `/student/report` | Report a Disruption | `REPORT BUS NOT ARRIVED / DISRUPTION` form, reference ID, UNVERIFIED status, own report history |
-| `/student/alerts` | Journey Alerts | Incident, report, replacement, event, recommendation-change and service alerts derived from shared state |
-| `/control-centre` | Workspace status | Honest hand-off page describing what this module publishes into the shared state |
+No `.env` file, API key or third-party account is needed.
 
-### Journey planner behaviour (docs/04)
+---
 
-- Candidate journeys are generated from the shared demo route/stop/timetable/bus records — never
-  from a separate mock list.
-- Feasibility validates stop order, timetable chronology, minimum transfer buffer and arrival
-  deadline. Journeys using `UNAVAILABLE` or `MAINTENANCE` buses are excluded, and routes with a
-  confirmed road blockage/diversion are not offered.
-- Three independent rankings: **Fastest** (lowest elapsed time), **Most Reliable** (highest
-  illustrative reliability), **Fewest Transfers** (lowest bus count). Deterministic tie-breakers:
-  reliability, earlier arrival, fewer transfers.
-- If one journey legitimately wins several categories, the card says so ("Same journey also ranks
-  #1 for …") instead of fabricating alternatives. The full comparison table always shows every
-  distinct itinerary.
-- Journeys arriving after the required time are never recommended: they appear under late
-  alternatives and are labelled late.
-- Prototype limit: at most one bus change per journey (documented in the UI).
+## Demo walkthrough
 
-### Reliability (docs/09)
+1. **Plan a journey.** Open `/student/planner` and search from Vittal to Puttur Government College, arriving before 09:00. Compare the three ranked options, open the itinerary and map, and inspect the reliability factors.
+2. **Report a problem.** Open `/student/report`, submit a "bus not arrived" report and note the reference ID and `UNVERIFIED` status. The report does not mark a bus unavailable or create an incident.
+3. **Respond to a breakdown.** Open `/control-centre`, simulate a breakdown on R101 (for example `KA-21-AB-102`), review the ranked replacement recommendation, then approve or reject it. Approval updates the route's operational capacity and writes an audit entry.
+4. **Run the emergency.** Open `/control-centre/scenario` and run the four-condition scenario. Inspect the allocation, detours and unserved groups on `/control-centre/emergency`, then reset.
+5. **Check the prediction.** Open `/control-centre/prediction` to see predicted events, their provenance and affected network.
+6. **Inspect shared state.** `/control-centre/integration` shows what the portal published and the audit history.
 
-`score = clamp(100 − Σ penalties, 0, 100)` with the documented penalty caps (delay 25, event 20,
-transfer waiting 15, connection buffer 15, bus availability 15, transfer count 10). The exact
-required disclaimer is displayed wherever a score appears:
+---
 
-> Illustrative prototype reliability score. Not a statistically validated probability.
+## Project structure
 
-### Maps (docs/10)
+```text
+src/
+  components/     shared UI primitives
+  data/           demo seed dataset and validation
+  domain/         types, constants and calculation engines
+    calculations/ journey planning, reliability, event impact, demand, replacement, allocation
+    emergency/    emergency scenario, road detours, event prediction
+  features/
+    student/      dashboard, planner, submissions, reporting, alerts
+    journeys/     planner UI, comparison, timeline, map
+    control-centre/ emergency allocation, scenario and prediction pages
+    fleet/        fleet operations and replacement approval UI
+  layouts/        application shell and navigation
+  state/          canonical state, reducer, context and LocalStorage persistence
+tests/            domain and integration tests
+docs/             product, design and acceptance specifications
+```
 
-Leaflet + OpenStreetMap tiles render stop markers, bus-leg lines, walking segments, transfers and
-predicted-event markers. `tileerror` (or offline) switches to a local SVG schematic; a manual
-toggle is always available. Bus lines connect stop points and walking lines are straight-line
-approximations — both are labelled as schematic, never presented as road geometry or walking
-directions.
+State is persisted in the browser under the versioned key **`safar-state-v1`**. Malformed or incompatible saved state is replaced with the seed data and a non-blocking notice rather than crashing the app. Student and authority workspaces read and write the same canonical records, so a change in one workspace recalculates the other.
 
-### Disruption reporting (docs/06)
+---
 
-A submission validates route/bus/stop references, creates a reference ID (`RPT-YYYYMMDD-NNN`),
-records the timestamp, saves status `UNVERIFIED`, and publishes to the shared store. It never marks
-a bus unavailable, never confirms an incident and never allocates a replacement. Student reports
-and travel submissions are tagged with a labelled demo session (`student-demo-01`); no personal
-data is collected.
+## Seeded demo network
 
-### Shared-state integration
+- 5 villages and 4 destinations, including Puttur Government College
+- Routes R101–R104, 13 stops and 7 buses
+- `KA-21-AB-102` starts on R101
+- Demand baseline: 145 / 100, 90 / 110 and 185 / 140 → **420 students, 350 seats, 70 shortage**
+- One pre-seeded town festival event with derived route impacts
+- A labelled demo student session; no personal data is collected
 
-- Canonical types: `src/domain/types` mirror `docs/13`.
-- Seed data: `src/data/seed` (R101–R104, 7 buses, 13 stops, 5 villages, 4 destinations, one festival
-  event, demand seed 145/90/185 = 420 students and 350 seats, shortage 70), validated at startup
-  (`src/data/validation.ts`).
-- Store: React Context + reducer (`src/state`), persisted under the versioned key
-  `safar-state-v1`; malformed or incompatible saved state is replaced with seed data and a
-  non-blocking notice.
-- Implemented actions: `SUBMIT_DISRUPTION_REPORT`, `SUBMIT_TRAVEL_REQUEST`, `RESET_SCENARIO`,
-  `HYDRATE`. Authority actions extend the same union (they are not duplicated here).
-- Reads from other modules: `incidents`, `replacementRecommendations`, `eventRouteImpacts`, `alerts`.
-  When those records change, the planner and the alerts feed recalculate automatically.
-- Additive optional field on `DisruptionReport`: `submittedBySessionId` so the demo session can
-  show "my reports". Recommend keeping it in the shared model (Member 1 coordination point).
+The seed is validated on load so routes, stops, services, buses and demand references stay consistent.
 
-### Files another member will want to reuse
+---
 
-- `src/domain/calculations/journeyPlanner.ts` — `generateJourneyOptions` (shared journey service).
-- `src/domain/calculations/reliability.ts` — `calculateJourneyReliability`.
-- `src/domain/services/studentActions.ts` — report/travel-request validation and creation.
-- `src/features/student/alerts.ts` — `buildStudentAlerts` (state-derived student feed).
-- `src/features/journeys/mapLayout.ts` — map plan + schematic projection (pure, testable).
+## Scope and limitations
 
-## Tests performed
+This is a hackathon-style prototype, not a production transport system.
 
-`npm run test` → **61 passed** across:
-
-- `tests/seed.test.ts` — referential integrity, R101–R104, KA-21-AB-102 on R101, 420/350/70 demand,
-  chronology, fresh object graph per reset.
-- `tests/journeyPlanner.test.ts` — Vittal→PGC before 09:00, three categories and their rankings,
-  duplicate-winner honesty, chronological segments, labelled walking estimates, late handling,
-  different origins, walk-only trip, unavailable-bus exclusion, confirmed-incident delay,
-  predicted event warning, no-route honesty.
-- `tests/reliability.test.ts` — bounds, penalty caps, buffer behaviour, exact disclaimer.
-- `tests/studentActions.test.ts` — UNVERIFIED creation, fleet/incident untouched, validation rules.
-- `tests/studentAlerts.test.ts` — report/incident/replacement/event/recommendation-change alerts,
-  session isolation, uniqueness and ordering.
-- `tests/mapLayout.test.ts` — markers, bus/walk paths, event marker, schematic bounds.
-
-Also executed: `npm run typecheck` (clean) and `npm run build` (succeeds; bundle-size warning only).
-
-## Known limitations
-
-- No authentication; a single labelled demo session represents the student (documented in the UI).
-- LocalStorage is a single-browser demo store, not a multi-user database.
+- No authentication, multi-user sync or server database. LocalStorage is a single-browser demo store.
+- Student reports remain `UNVERIFIED` in this build; the authority review and incident-confirmation screens are future work, although the state actions exist.
 - At most one transfer per journey; no multi-day or overnight planning.
-- Walking distances are approximations (straight-line × 1.35 at 4.8 km/h), never road-routed.
-- Delay from a confirmed incident uses a documented prototype severity→minutes conversion.
-- Seed event-route impact records are demo values; recalculation belongs to Member 3. The Student
-  Portal only reads them, and the UI labels them as predicted, not verified.
-- The Control Centre page is a status/hand-off page by design; authority workflows are not
-  implemented here.
-- Map tiles need network access; without them the schematic fallback is used (verified in code and
-  unit tests, not visually in a browser).
-- End-to-end integration with the other three modules cannot be claimed until Member 1's foundation
-  branch exists and the combined application is tested.
+- Walking distances and times are approximations, not routed directions.
+- Reliability, demand, delay and event impacts are deterministic illustrative calculations, not statistical or ML forecasts.
+- Predicted congestion is not a verified road closure.
+- The emergency allocator is a deterministic priority-based pass, not a proven optimal solution.
+- Map tiles require network access; the schematic fallback is used otherwise.
+- No AI/LLM provider is called at runtime — explanations are generated deterministically from the data.
 
-## Branch and delivery
+---
 
-Target branch: `feature/student-portal`. Do not push to `main`. No secrets are stored in the repo.
+## Documentation
+
+The `docs/` directory is the design source of truth for the full SAFAR concept, including modules that are planned but not present in this build.
+
+| Document | Contents |
+|---|---|
+| [`docs/01_PRODUCT_AND_SCOPE.md`](docs/01_PRODUCT_AND_SCOPE.md) | Product scope and users |
+| [`docs/02_ARCHITECTURE_AND_STACK.md`](docs/02_ARCHITECTURE_AND_STACK.md) | Architecture and stack |
+| [`docs/04_JOURNEY_PLANNER.md`](docs/04_JOURNEY_PLANNER.md) | Journey planning rules |
+| [`docs/06_IMMEDIATE_DISRUPTION_RESPONSE.md`](docs/06_IMMEDIATE_DISRUPTION_RESPONSE.md) | Reports, verification and incidents |
+| [`docs/07_FLEET_AND_REPLACEMENT.md`](docs/07_FLEET_AND_REPLACEMENT.md) | Fleet and replacement rules |
+| [`docs/09_RELIABILITY_AND_DELAY.md`](docs/09_RELIABILITY_AND_DELAY.md) | Reliability scoring |
+| [`docs/11_SHARED_STATE_AND_PERSISTENCE.md`](docs/11_SHARED_STATE_AND_PERSISTENCE.md) | Shared state and persistence |
+| [`docs/15_SCENARIOS_AND_DEMO_SCRIPT.md`](docs/15_SCENARIOS_AND_DEMO_SCRIPT.md) | Demo script |
+| [`EMERGENCY_INTELLIGENCE.md`](EMERGENCY_INTELLIGENCE.md) | Emergency engine design and test matrix |
+
+---
+
+## Status
+
+Student Portal, journey intelligence, disruption reporting, fleet operations, replacement workflow, emergency allocation and event prediction are implemented on `main`. Other workspaces and authority review screens described in `docs/` are not part of this build.

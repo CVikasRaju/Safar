@@ -37,6 +37,7 @@ import {
   haversineMeters,
 } from "./walking";
 import { calculateJourneyReliability } from "./reliability";
+import { closedRoadIds, routeDetour } from "../emergency/roads";
 import { INCIDENT_SEVERITY_DELAY_MINUTES, ROUTE_BLOCKING_INCIDENT_TYPES } from "../constants";
 
 /**
@@ -135,6 +136,27 @@ export function buildRouteContexts(state: SafarState): RouteContextMap {
     context.eventImpacts.push({ impact, event });
   }
 
+  // Active emergency: closed roads add the calculated detour time to affected
+  // routes so journey estimates react to the flood instead of ignoring it.
+  if (state.emergency) {
+    const blockedRoadIds = closedRoadIds(state.emergency.roadConditions);
+    if (blockedRoadIds.length > 0) {
+      for (const route of state.routes) {
+        const context = contexts.get(route.id);
+        if (!context) continue;
+        const detour = routeDetour(state.emergency.roads, route, blockedRoadIds);
+        if (detour.blockedRoadIds.length === 0) continue;
+        context.baseDelayMinutes = Math.max(
+          context.baseDelayMinutes,
+          detour.additionalMinutes,
+        );
+        context.delayReasons.push(
+          `Flooded road closed: ${route.id} is re-routed via the ring road (+${detour.additionalDistanceKm} km, +${detour.additionalMinutes} min).`,
+        );
+      }
+    }
+  }
+
   return contexts;
 }
 
@@ -172,7 +194,9 @@ function eventOverlapForWindow(
   const endIso = minutesToIso(dateISO, endMinute);
   let best: EventOverlap | undefined;
   for (const { impact, event } of routeContext.eventImpacts) {
-    if (!rangesOverlap(startIso, endIso, event.impactWindow.start, event.impactWindow.end)) continue;
+    const windowStart = event.impactWindow?.start ?? `${event.date}T${event.startTime}:00`;
+    const windowEnd = event.impactWindow?.end ?? `${event.date}T${event.endTime}:00`;
+    if (!rangesOverlap(startIso, endIso, windowStart, windowEnd)) continue;
     const candidate: EventOverlap = {
       score: impact.impactScore,
       delayMinutes: impact.estimatedDelayMinutes ?? 0,

@@ -5,6 +5,7 @@ import "leaflet/dist/leaflet.css";
 import "./styles/index.css";
 import App from "./App";
 import { SafarProvider } from "./state/SafarStateContext";
+import { AuthProvider } from "./auth/AuthContext";
 
 const rootElement = document.getElementById("root");
 if (!rootElement) {
@@ -13,10 +14,12 @@ if (!rootElement) {
 
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
-    <SafarProvider>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    </SafarProvider>
+    <AuthProvider>
+      <SafarProvider>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </SafarProvider>
+    </AuthProvider>
   </React.StrictMode>,
 );

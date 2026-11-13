@@ -1,9 +1,11 @@
+import { useAuth } from "../../auth/AuthContext";
+
 /**
  * Demo student session.
  *
- * The prototype has no authentication (docs/01). Reports and travel requests
- * are tagged with a clearly labelled demo session identifier so the Student
- * Portal can show "my" records without collecting personal information.
+ * Authentication is a browser-only demonstration (see src/auth). Reports and
+ * travel requests are tagged with the signed-in student's demo identifier so
+ * each account sees its own records without collecting personal information.
  */
 export interface DemoStudentSession {
   id: string;
@@ -20,5 +22,14 @@ export const DEMO_SESSION: DemoStudentSession = {
 };
 
 export function useStudentSession(): DemoStudentSession {
+  const { user } = useAuth();
+  if (user?.role === "STUDENT") {
+    return {
+      id: user.id,
+      displayName: user.displayName,
+      homeVillageId: user.homeVillageId ?? DEMO_SESSION.homeVillageId,
+      label: user.roleLabel,
+    };
+  }
   return DEMO_SESSION;
 }

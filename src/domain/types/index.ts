@@ -28,6 +28,43 @@ export type ReportStatus = "UNVERIFIED" | "VERIFIED" | "REJECTED" | "DUPLICATE" 
 
 export type IncidentStatus = "ACTIVE" | "RESOLVED" | "CLOSED";
 
+export type IncidentSeverity = "LOW" | "MODERATE" | "MEDIUM" | "HIGH" | "CRITICAL";
+
+export type CrowdIntensity = "LOW" | "MODERATE" | "HIGH" | "VERY_HIGH" | "CRITICAL";
+
+export type IncidentType =
+  | "BREAKDOWN"
+  | "BUS_BREAKDOWN"
+  | "MECHANICAL_FAILURE"
+  | "DRIVER_ISSUE"
+  | "ROAD_CLOSURE"
+  | "ROAD_BLOCKAGE"
+  | "ROUTE_DIVERSION"
+  | "CANCELLATION"
+  | "CAPACITY_SHORTAGE"
+  | "DELAY"
+  | "OVERCROWDING"
+  | "WEATHER"
+  | "ACCIDENT"
+  | "CUSTOM"
+  | "OTHER";
+
+export type ReportType =
+  | "BUS_DELAYED"
+  | "BUS_OVERCROWDED"
+  | "BUS_BREAKDOWN"
+  | "BUS_NOT_ARRIVED"
+  | "MECHANICAL_FAILURE"
+  | "DRIVER_ISSUE"
+  | "CANCELLATION"
+  | "ROAD_BLOCKED"
+  | "ROAD_BLOCKAGE"
+  | "ROUTE_DIVERSION"
+  | "CAPACITY_SHORTAGE"
+  | "STOP_INACCESSIBLE"
+  | "CUSTOM"
+  | "OTHER";
+
 export type ServiceDirection = "OUTBOUND" | "INBOUND";
 
 export interface Coordinates {
@@ -40,6 +77,8 @@ export interface Village {
   name: string;
   taluk: string;
   coordinates: Coordinates;
+  lat?: number;
+  lng?: number;
 }
 
 export interface Destination {
@@ -49,6 +88,9 @@ export interface Destination {
   /** Primary bus stop used as the drop-off reference (may be a short walk away). */
   stopId: string;
   coordinates: Coordinates;
+  type?: "COLLEGE" | "HOSPITAL" | "MARKET" | "GOVERNMENT_OFFICE" | "OTHER";
+  lat?: number;
+  lng?: number;
 }
 
 export interface Stop {
@@ -56,6 +98,9 @@ export interface Stop {
   name: string;
   villageId: string;
   coordinates: Coordinates;
+  lat?: number;
+  lng?: number;
+  sequence?: number;
 }
 
 export type RouteImportance = "PRIMARY" | "SECONDARY" | "FEEDER";
@@ -67,6 +112,10 @@ export interface Route {
   importance: RouteImportance;
   /** Ordered stop IDs. Sequence order is the direction of travel for OUTBOUND services. */
   stops: string[];
+  stopIds?: string[];
+  originVillageId?: string;
+  destinationId?: string;
+  provenance?: Provenance;
 }
 
 export interface TimetableStopTime {
@@ -74,6 +123,8 @@ export interface TimetableStopTime {
   /** Minutes after local midnight. Arrival and departure are equal in this demo timetable. */
   arrivalMinute: number;
   departureMinute: number;
+  scheduledArrival?: string;
+  scheduledDeparture?: string;
 }
 
 export interface TimetableService {
@@ -81,8 +132,8 @@ export interface TimetableService {
   routeId: string;
   busId: string;
   direction: ServiceDirection;
-  /** ISO weekday numbers, 0 = Sunday. */
-  operatingDays: number[];
+  /** ISO weekday numbers, 0 = Sunday, or day strings. */
+  operatingDays: (number | string)[];
   stopTimes: TimetableStopTime[];
   provenance: Provenance;
 }
@@ -110,36 +161,45 @@ export type EventCategory =
   | "PUBLIC_GATHERING"
   | "POLITICAL_RALLY"
   | "NATIONAL_CELEBRATION"
+  | "CELEBRATION"
   | "CONSTRUCTION"
   | "ROAD_CLOSURE"
   | "CUSTOM";
 
 export type CrowdLevel = "LOW" | "MODERATE" | "HIGH" | "VERY_HIGH";
 
-export type EventVerificationStatus = "PREDICTED" | "UNVERIFIED" | "CONFIRMED";
+export type EventVerificationStatus = "PREDICTED" | "UNVERIFIED" | "CONFIRMED" | "VERIFIED" | "REJECTED";
 
 export interface SafarEvent {
   id: string;
   name: string;
   category: EventCategory;
-  locationLabel: string;
+  locationLabel?: string;
+  location?: string;
   coordinates?: Coordinates;
+  lat?: number;
+  lng?: number;
   /** Local calendar date, YYYY-MM-DD. */
   date: string;
   startTime: string;
   endTime: string;
-  expectedCrowdLevel: CrowdLevel;
+  expectedCrowdLevel?: CrowdLevel;
+  crowdIntensity?: CrowdIntensity;
   nearbyVillageIds: string[];
-  affectedRoads: string[];
+  affectedRoads?: string[];
+  affectedRoadLabels?: string[];
   affectedRouteIds: string[];
-  impactWindow: { start: string; end: string };
+  impactWindow?: { start: string; end: string };
+  impactWindowMinutes?: number;
   /** Minutes of preparation/arrival buffer supplied by scenario configuration (never invented). */
-  impactWindowBufferMinutes: number;
-  impactWindowBasis: string;
-  description: string;
+  impactWindowBufferMinutes?: number;
+  impactWindowBasis?: string;
+  description?: string;
   source: string;
   verificationStatus: EventVerificationStatus;
   provenance: Provenance;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export type RiskLevel = "LOW" | "MODERATE" | "HIGH" | "CRITICAL";
@@ -149,17 +209,23 @@ export type RiskLevel = "LOW" | "MODERATE" | "HIGH" | "CRITICAL";
  * (Member 3). The Student Portal only reads these records.
  */
 export interface EventRouteImpact {
-  id: string;
+  id?: string;
   eventId: string;
   routeId: string;
   impactScore: number;
   riskLevel: RiskLevel;
-  overlapMinutes: number;
-  proximityBasis: string;
+  overlapMinutes?: number;
+  proximityBasis?: string;
   estimatedDelayMinutes?: number;
   explanation: string;
-  computedAt: string;
+  computedAt?: string;
+  calculatedAt?: string;
   provenance: Provenance;
+  crowdScore?: number;
+  proximityScore?: number;
+  overlapScore?: number;
+  routeImportanceScore?: number;
+  durationScore?: number;
 }
 
 export interface DemandSeedRecord {
@@ -168,6 +234,59 @@ export interface DemandSeedRecord {
   availableSeats: number;
   provenance: Provenance;
   note: string;
+}
+
+export type DemandSeed = DemandSeedRecord;
+
+export interface RouteDemand {
+  routeId: string;
+  expectedStudents: number;
+  availableSeats: number;
+  occupiedSeats: number;
+  remainingSeats: number;
+  shortage: number;
+  surplus: number;
+  overcrowdingRisk: boolean;
+  provenance: Provenance;
+}
+
+export type SegmentType = "WALK" | "BUS" | "WAIT" | "TRANSFER";
+
+export interface JourneySegment {
+  id: string;
+  type: SegmentType;
+  fromLabel: string;
+  toLabel: string;
+  fromStopId?: string;
+  toStopId?: string;
+  serviceId?: string;
+  busId?: string;
+  departureTime: string;
+  arrivalTime: string;
+  durationMinutes: number;
+  distanceLabel?: string;
+  notes?: string;
+}
+
+export interface JourneyOption {
+  id: string;
+  originVillageId: string;
+  destinationId: string;
+  travelDate: string;
+  requiredArrivalTime: string;
+  segments: JourneySegment[];
+  totalDurationMinutes: number;
+  transferCount: number;
+  walkingSegments: number;
+  departureTime: string;
+  expectedArrivalTime: string;
+  estimatedDelayMinutes: number;
+  reliabilityScore: number;
+  meetsArrivalDeadline: boolean;
+  warnings: string[];
+  submittedAt?: string;
+  category?: string;
+  provenance: Provenance;
 }
 
 export interface StudentTravelRequest {
@@ -195,7 +314,10 @@ export interface DisruptionReport {
   status: ReportStatus;
   reviewReason?: string;
   reviewedAt?: string;
+  reviewedByRole?: string;
   relatedIncidentId?: string;
+  category?: string;
+  location?: string;
   provenance: "USER_ENTERED" | "SIMULATED";
   /**
    * Demo session that submitted the report. Optional and additive so the
@@ -216,6 +338,10 @@ export interface Incident {
   expectedResolution?: string;
   description?: string;
   relatedReportIds: string[];
+  affectedJourneyIds?: string[];
+  estimatedAffectedPassengers?: number;
+  confirmedByRole?: string;
+  confirmedAt?: string;
   provenance: Provenance;
 }
 
@@ -238,6 +364,7 @@ export interface ReplacementRecommendation {
   recommendedBusId?: string;
   status: "PENDING" | "APPROVED" | "REJECTED" | "NO_FEASIBLE_CANDIDATE";
   decisionReason?: string;
+  decidedAt?: string;
 }
 
 export type AlertAudience = "STUDENT" | "AUTHORITY" | "ALL";
@@ -253,17 +380,25 @@ export interface Alert {
   relatedIncidentId?: string;
   relatedReportId?: string;
   provenance: Provenance;
+  type?: string;
+  category?: string;
+  read?: boolean;
 }
 
-export type DemoActor = "STUDENT_DEMO" | "AUTHORITY_DEMO" | "SYSTEM";
+export type DemoActor = "STUDENT_DEMO" | "AUTHORITY_DEMO" | "SYSTEM" | "AUTHORITY";
 
 export interface AuditEvent {
   id: string;
-  actor: DemoActor;
+  actor?: DemoActor;
   action: string;
-  at: string;
-  recordIds: string[];
+  at?: string;
+  timestamp?: string;
+  recordIds?: string[];
   reason?: string;
+  entityType?: string;
+  performedByRole?: string;
+  affectedRecordType?: string;
+  affectedRecordId?: string;
 }
 
 export interface ScenarioState {
@@ -272,19 +407,33 @@ export interface ScenarioState {
   /** Configurable demo date; never assume the real calendar date. */
   scenarioDate: string;
   notes: string;
+  steps?: string[];
+  festivalEventId?: string;
+  breakdownBusId?: string;
+  breakdownIncidentId?: string;
+  replacementRecommendationId?: string;
+  approvedReplacementBusId?: string;
 }
 
 export interface SafarState {
   schemaVersion: number;
+  /**
+   * Active emergency scenario inputs, added additively by the emergency
+   * intelligence engine. Allocations are recomputed from these inputs rather
+   * than stored, so repeated runs cannot duplicate assignments.
+   */
+  emergency?: import("./emergency").EmergencyState;
   seedVersion: string;
   villages: Village[];
   destinations: Destination[];
   stops: Stop[];
   routes: Route[];
   timetableServices: TimetableService[];
+  timetables: TimetableService[];
   buses: Bus[];
   events: SafarEvent[];
   eventRouteImpacts: EventRouteImpact[];
+  eventImpacts: EventRouteImpact[];
   demandSeed: DemandSeedRecord[];
   travelRequests: StudentTravelRequest[];
   disruptionReports: DisruptionReport[];
@@ -293,4 +442,7 @@ export interface SafarState {
   alerts: Alert[];
   auditEvents: AuditEvent[];
   scenario: ScenarioState;
+  lastSavedAt?: string;
 }
+
+export type AppState = SafarState;
