@@ -26,23 +26,34 @@ const STUDENT_NAV = [
   { to: "/student/alerts", label: "Journey Alerts", icon: Bell, end: false },
 ];
 
+const CONTROL_CENTRE_NAV = [
+  { to: "/control-centre", label: "Control Centre Operations", icon: ShieldCheck, end: true },
+];
+
 const PAGE_TITLES: Record<string, string> = {
   "/student": "Student Dashboard",
   "/student/planner": "Journey Planner",
   "/student/submissions": "My Travel Plans",
   "/student/report": "Report a Disruption",
   "/student/alerts": "Journey Alerts",
-  "/control-centre": "Control Centre",
+  "/control-centre": "Government Control Centre",
 };
 
-function NavItems({ onNavigate }: { onNavigate?: () => void }) {
+function NavItems({
+  isControlCentre,
+  onNavigate,
+}: {
+  isControlCentre: boolean;
+  onNavigate?: () => void;
+}) {
   const alerts = useStudentAlerts();
   const { isRead } = useAlertReadState();
   const unread = alerts.filter((alert) => !isRead(alert.id)).length;
+  const navItems = isControlCentre ? CONTROL_CENTRE_NAV : STUDENT_NAV;
 
   return (
-    <nav aria-label="Student portal sections" className="flex flex-col gap-1">
-      {STUDENT_NAV.map((item) => {
+    <nav aria-label={isControlCentre ? "Control centre sections" : "Student portal sections"} className="flex flex-col gap-1">
+      {navItems.map((item) => {
         const Icon = item.icon;
         return (
           <NavLink
@@ -61,7 +72,7 @@ function NavItems({ onNavigate }: { onNavigate?: () => void }) {
           >
             <Icon size={16} aria-hidden="true" />
             <span className="flex-1">{item.label}</span>
-            {item.to === "/student/alerts" && unread > 0 ? (
+            {!isControlCentre && item.to === "/student/alerts" && unread > 0 ? (
               <span className="rounded-full bg-red-400/20 px-1.5 py-0.5 text-[10px] font-bold text-red-200">
                 {unread}
               </span>
@@ -88,7 +99,7 @@ function WorkspaceSwitch() {
           to="/student"
           className={({ isActive }) =>
             cx(
-              "flex items-center gap-2 rounded-md px-2 py-1.5 text-xs",
+              "flex items-center gap-2 rounded-md px-2 py-1.5 text-xs transition-colors",
               isActive ? "bg-brand/15 font-semibold text-brand" : "text-ink-dim hover:text-ink",
             )
           }
@@ -99,7 +110,7 @@ function WorkspaceSwitch() {
           to="/control-centre"
           className={({ isActive }) =>
             cx(
-              "flex items-center gap-2 rounded-md px-2 py-1.5 text-xs",
+              "flex items-center gap-2 rounded-md px-2 py-1.5 text-xs transition-colors",
               isActive ? "bg-brand/15 font-semibold text-brand" : "text-ink-dim hover:text-ink",
             )
           }
@@ -120,7 +131,8 @@ export function AppShell() {
     setMobileOpen(false);
   }, [location.pathname]);
 
-  const title = PAGE_TITLES[location.pathname] ?? "Student Portal";
+  const isControlCentre = location.pathname.startsWith("/control-centre");
+  const title = PAGE_TITLES[location.pathname] ?? (isControlCentre ? "Government Control Centre" : "Student Portal");
 
   return (
     <div className="min-h-screen bg-abyss text-ink">
@@ -136,17 +148,19 @@ export function AppShell() {
         <div className="px-1">
           <div className="flex items-center gap-2">
             <span className="grid h-8 w-8 place-items-center rounded-lg border border-brand/40 bg-brand/10 text-brand">
-              <Bus size={17} />
+              {isControlCentre ? <ShieldCheck size={17} /> : <Bus size={17} />}
             </span>
             <div>
               <p className="text-sm font-bold tracking-[0.14em] text-ink">SAFAR</p>
-              <p className="text-[10px] text-muted">Student Portal</p>
+              <p className="text-[10px] text-muted">
+                {isControlCentre ? "Government Control Centre" : "Student Portal"}
+              </p>
             </div>
           </div>
           <p className="mt-2 text-[10px] leading-relaxed text-muted">{SAFAR_TAGLINE}</p>
         </div>
         <div className="mt-5 flex-1 overflow-y-auto">
-          <NavItems />
+          <NavItems isControlCentre={isControlCentre} />
         </div>
         <WorkspaceSwitch />
         <div className="mt-3 rounded-lg border border-amber-400/25 bg-amber-400/5 p-2">
@@ -158,7 +172,9 @@ export function AppShell() {
             official or live information.
           </p>
         </div>
-        <p className="mt-3 px-1 text-[10px] text-muted">{DEMO_SESSION.label}</p>
+        <p className="mt-3 px-1 text-[10px] text-muted">
+          {isControlCentre ? "Role: Transport Authority Operator" : DEMO_SESSION.label}
+        </p>
       </aside>
 
       {/* Mobile top bar */}
@@ -174,7 +190,9 @@ export function AppShell() {
         </button>
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold">{title}</p>
-          <p className="truncate text-[10px] text-muted">SAFAR · Student Portal</p>
+          <p className="truncate text-[10px] text-muted">
+            SAFAR · {isControlCentre ? "Control Centre" : "Student Portal"}
+          </p>
         </div>
         <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-amber-300">
           Demo data
@@ -201,7 +219,7 @@ export function AppShell() {
                 <X size={15} />
               </button>
             </div>
-            <NavItems onNavigate={() => setMobileOpen(false)} />
+            <NavItems isControlCentre={isControlCentre} onNavigate={() => setMobileOpen(false)} />
             <WorkspaceSwitch />
           </div>
         </div>
@@ -211,13 +229,21 @@ export function AppShell() {
         <div className="hidden items-center justify-between border-b border-line bg-navy/60 px-6 py-3 lg:flex">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">
-              Student Portal
+              {isControlCentre ? "Authority Workspace" : "Student Portal"}
             </p>
             <h1 className="text-base font-semibold tracking-tight text-ink">{title}</h1>
           </div>
           <div className="flex items-center gap-2">
             <span className="safar-chip border-brand/30 text-brand">
-              <Bus size={12} /> {DEMO_SESSION.displayName}
+              {isControlCentre ? (
+                <>
+                  <ShieldCheck size={12} /> Transport Authority Operator
+                </>
+              ) : (
+                <>
+                  <Bus size={12} /> {DEMO_SESSION.displayName}
+                </>
+              )}
             </span>
             <span className="safar-chip border-amber-400/30 text-amber-300">{DEMO_DATA_LABEL}</span>
           </div>
