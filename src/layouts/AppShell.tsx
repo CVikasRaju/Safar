@@ -28,10 +28,11 @@ const STUDENT_NAV = [
 ];
 
 const CONTROL_NAV = [
-  { to: "/control-centre", label: "Emergency Overview", icon: ShieldCheck, end: true },
+  { to: "/control-centre", label: "Fleet & Operations", icon: ShieldCheck, end: true },
   { to: "/control-centre/emergency", label: "Allocation & Routes", icon: Bus, end: false },
+  { to: "/control-centre/scenario", label: "Emergency Scenario", icon: AlertTriangle, end: false },
   { to: "/control-centre/prediction", label: "Event Prediction", icon: Radar, end: false },
-  { to: "/control-centre/integration", label: "Shared State", icon: ClipboardList, end: false },
+  { to: "/control-centre/integration", label: "Shared State & Logs", icon: ClipboardList, end: false },
 ];
 
 const PAGE_TITLES: Record<string, string> = {
@@ -40,9 +41,10 @@ const PAGE_TITLES: Record<string, string> = {
   "/student/submissions": "My Travel Plans",
   "/student/report": "Report a Disruption",
   "/student/alerts": "Journey Alerts",
-  "/control-centre": "Emergency Overview",
-  "/control-centre/emergency": "Allocation & Routes",
-  "/control-centre/prediction": "Event Prediction",
+  "/control-centre": "Fleet Operations & Replacement",
+  "/control-centre/emergency": "Emergency Allocation & Routes",
+  "/control-centre/scenario": "Emergency Scenario Dashboard",
+  "/control-centre/prediction": "Event Prediction & Provenance",
   "/control-centre/integration": "Shared Integration State",
 };
 
@@ -50,10 +52,12 @@ function NavItems({
   items,
   onNavigate,
   ariaLabel,
+  isControlCentre,
 }: {
   items: typeof STUDENT_NAV;
   onNavigate?: () => void;
   ariaLabel: string;
+  isControlCentre: boolean;
 }) {
   const alerts = useStudentAlerts();
   const { isRead } = useAlertReadState();
@@ -80,7 +84,7 @@ function NavItems({
           >
             <Icon size={16} aria-hidden="true" />
             <span className="flex-1">{item.label}</span>
-            {item.to === "/student/alerts" && unread > 0 ? (
+            {!isControlCentre && item.to === "/student/alerts" && unread > 0 ? (
               <span className="rounded-full bg-red-400/20 px-1.5 py-0.5 text-[10px] font-bold text-red-200">
                 {unread}
               </span>
@@ -107,7 +111,7 @@ function WorkspaceSwitch() {
           to="/student"
           className={({ isActive }) =>
             cx(
-              "flex items-center gap-2 rounded-md px-2 py-1.5 text-xs",
+              "flex items-center gap-2 rounded-md px-2 py-1.5 text-xs transition-colors",
               isActive ? "bg-brand/15 font-semibold text-brand" : "text-ink-dim hover:text-ink",
             )
           }
@@ -118,12 +122,12 @@ function WorkspaceSwitch() {
           to="/control-centre"
           className={({ isActive }) =>
             cx(
-              "flex items-center gap-2 rounded-md px-2 py-1.5 text-xs",
+              "flex items-center gap-2 rounded-md px-2 py-1.5 text-xs transition-colors",
               isActive ? "bg-brand/15 font-semibold text-brand" : "text-ink-dim hover:text-ink",
             )
           }
         >
-          <ShieldCheck size={14} /> Control Centre
+          <ShieldCheck size={14} /> Government Control Centre
         </NavLink>
       </div>
     </div>
@@ -139,9 +143,9 @@ export function AppShell() {
     setMobileOpen(false);
   }, [location.pathname]);
 
-  const isControl = location.pathname.startsWith("/control-centre");
-  const workspaceLabel = isControl ? "Control Centre" : "Student Portal";
-  const navItems = isControl ? CONTROL_NAV : STUDENT_NAV;
+  const isControlCentre = location.pathname.startsWith("/control-centre");
+  const workspaceLabel = isControlCentre ? "Government Control Centre" : "Student Portal";
+  const navItems = isControlCentre ? CONTROL_NAV : STUDENT_NAV;
   const title = PAGE_TITLES[location.pathname] ?? workspaceLabel;
 
   return (
@@ -158,7 +162,7 @@ export function AppShell() {
         <div className="px-1">
           <div className="flex items-center gap-2">
             <span className="grid h-8 w-8 place-items-center rounded-lg border border-brand/40 bg-brand/10 text-brand">
-              <Bus size={17} />
+              {isControlCentre ? <ShieldCheck size={17} /> : <Bus size={17} />}
             </span>
             <div>
               <p className="text-sm font-bold tracking-[0.14em] text-ink">SAFAR</p>
@@ -170,7 +174,9 @@ export function AppShell() {
         <div className="mt-5 flex-1 overflow-y-auto">
           <NavItems
             items={navItems}
-            ariaLabel={isControl ? "Control Centre sections" : "Student portal sections"}
+            onNavigate={() => setMobileOpen(false)}
+            ariaLabel={isControlCentre ? "Control centre sections" : "Student portal sections"}
+            isControlCentre={isControlCentre}
           />
         </div>
         <WorkspaceSwitch />
@@ -183,7 +189,9 @@ export function AppShell() {
             official or live information.
           </p>
         </div>
-        <p className="mt-3 px-1 text-[10px] text-muted">{DEMO_SESSION.label}</p>
+        <p className="mt-3 px-1 text-[10px] text-muted">
+          {isControlCentre ? "Role: Transport Authority Operator" : DEMO_SESSION.label}
+        </p>
       </aside>
 
       {/* Mobile top bar */}
@@ -229,7 +237,8 @@ export function AppShell() {
             <NavItems
               items={navItems}
               onNavigate={() => setMobileOpen(false)}
-              ariaLabel={isControl ? "Control Centre sections" : "Student portal sections"}
+              ariaLabel={isControlCentre ? "Control centre sections" : "Student portal sections"}
+              isControlCentre={isControlCentre}
             />
             <WorkspaceSwitch />
           </div>
@@ -240,13 +249,21 @@ export function AppShell() {
         <div className="hidden items-center justify-between border-b border-line bg-navy/60 px-6 py-3 lg:flex">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">
-              {workspaceLabel}
+              {isControlCentre ? "Authority Workspace" : "Student Portal"}
             </p>
             <h1 className="text-base font-semibold tracking-tight text-ink">{title}</h1>
           </div>
           <div className="flex items-center gap-2">
             <span className="safar-chip border-brand/30 text-brand">
-              <Bus size={12} /> {DEMO_SESSION.displayName}
+              {isControlCentre ? (
+                <>
+                  <ShieldCheck size={12} /> Transport Authority Operator
+                </>
+              ) : (
+                <>
+                  <Bus size={12} /> {DEMO_SESSION.displayName}
+                </>
+              )}
             </span>
             <span className="safar-chip border-amber-400/30 text-amber-300">{DEMO_DATA_LABEL}</span>
           </div>
