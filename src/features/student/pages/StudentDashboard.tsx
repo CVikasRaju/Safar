@@ -94,7 +94,7 @@ export function StudentDashboard() {
     (row) => row.blocked || row.incidents.length > 0 || row.impacts.length > 0,
   ).length;
 
-  const defaultRequest = defaultJourneyRequest(state);
+  const defaultRequest = defaultJourneyRequest(state, session.homeVillageId);
 
   const handleQuickSearch = (request: JourneySearchRequest) => {
     navigate(plannerHref(request));
@@ -106,14 +106,14 @@ export function StudentDashboard() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-2xl">
             <Badge tone="brand">
-              <Bus size={11} /> Student Portal
+              <Bus size={11} /> Student services
             </Badge>
             <h1 className="mt-2 text-xl font-semibold tracking-tight text-ink sm:text-2xl">
-              Know your journey before you leave the village.
+              Plan your journey to college
             </h1>
             <p className="mt-1.5 text-sm leading-relaxed text-ink-dim">
-              Plan a bus journey around your college arrival time, compare alternatives, follow
-              predicted disruptions, and report a bus that has not arrived.
+              Search bus journeys from your village, compare arrival times, check service updates and
+              report a bus that has not arrived.
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               <Button variant="primary" size="sm" onClick={() => navigate(plannerHref(defaultRequest))}>
@@ -131,14 +131,13 @@ export function StudentDashboard() {
               </Link>
             </div>
           </div>
-          <div className="rounded-lg border border-line bg-abyss/60 p-3 text-[11px] leading-relaxed text-muted">
-            <p className="font-semibold text-ink-dim">Demo session</p>
-            <p>{session.displayName} · {session.label}</p>
-            <p className="mt-2 font-semibold text-ink-dim">Demo scenario date</p>
+          <div className="rounded-lg border border-line bg-panel-2 p-3 text-[11px] leading-relaxed text-muted">
+            <p className="font-semibold text-ink-dim">Signed in</p>
+            <p className="text-ink">{session.displayName}</p>
+            <p>{session.label}</p>
+            <p className="mt-2 font-semibold text-ink-dim">Journey date</p>
             <p>{formatDateLabel(state.scenario.scenarioDate)}</p>
-            <p className="mt-2 text-[10px] uppercase tracking-wide text-amber-300">
-              Simulated / demo data
-            </p>
+            <p className="mt-2 text-[10px] text-amber-800">Illustrative demonstration data</p>
           </div>
         </div>
       </Card>
@@ -385,16 +384,23 @@ export function StudentDashboard() {
 
           <Card>
             <CardHeader
-              title="Bus not arrived?"
-              description="Tell the authorities what you are seeing. Your report stays unverified until they review it."
+              title="Missed your bus?"
+              description="See the next feasible departure, or tell the control room what happened. Reports stay unverified until an operator reviews them."
               icon={<AlertTriangle size={15} />}
             />
             <div className="mt-3 space-y-2">
-              <Link to="/student/report">
-                <Button variant="danger" className="w-full">
-                  <AlertTriangle size={14} /> REPORT BUS NOT ARRIVED / DISRUPTION
-                </Button>
-              </Link>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <Link to={plannerHref(defaultRequest)}>
+                  <Button variant="primary" className="w-full">
+                    <RouteIcon size={14} /> Find the next bus
+                  </Button>
+                </Link>
+                <Link to="/student/report">
+                  <Button variant="danger" className="w-full">
+                    <AlertTriangle size={14} /> Report it
+                  </Button>
+                </Link>
+              </div>
               <p className="text-[10px] leading-relaxed text-muted">
                 A report does not mark a bus unavailable and does not create a confirmed incident.
                 Only an authority can confirm an incident after review.

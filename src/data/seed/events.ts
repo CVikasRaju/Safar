@@ -16,7 +16,7 @@ export function buildSeedEvents(scenarioDate: string): SafarEvent[] {
   const endMinute = hhmmToMinutes("23:00");
   return [
     {
-      id: "evt-puttur-festival",
+      id: "EVT001",
       name: "Puttur Mahalingeshwara Temple Festival",
       category: "TEMPLE_FESTIVAL",
       locationLabel: "Puttur town centre, near the bus stand approach road",
@@ -57,7 +57,7 @@ export function buildSeedEventImpacts(now: Date): EventRouteImpact[] {
   return [
     {
       id: "eri-r101-festival",
-      eventId: "evt-puttur-festival",
+      eventId: "EVT001",
       routeId: "R101",
       impactScore: 62,
       riskLevel: "HIGH",
@@ -72,7 +72,7 @@ export function buildSeedEventImpacts(now: Date): EventRouteImpact[] {
     },
     {
       id: "eri-r104-festival",
-      eventId: "evt-puttur-festival",
+      eventId: "EVT001",
       routeId: "R104",
       impactScore: 44,
       riskLevel: "MODERATE",

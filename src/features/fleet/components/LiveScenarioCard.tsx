@@ -169,7 +169,7 @@ export function LiveScenarioCard({
     <div className="space-y-4">
       <Card className="border-brand/40 bg-panel">
         <CardHeader
-          title="Central SAFAR Live Demonstration Scenario (Scenario A)"
+          title="Emergency scenario"
           description="Repeatable end-to-end demonstration walking through student travel, regional event impact, bus breakdown, 35/30/25/10 replacement evaluation, authority approval, and state propagation (docs/15)."
           icon={<Sparkles size={18} className="text-brand" />}
           action={
@@ -178,7 +178,7 @@ export function LiveScenarioCard({
                 <RefreshCw size={13} /> Reset Scenario
               </Button>
               <Button variant="primary" size="sm" onClick={handleRunAll} disabled={isRunningAll}>
-                <Play size={13} /> Run SAFAR Live Scenario
+                <Play size={13} /> Run scenario
               </Button>
             </div>
           }

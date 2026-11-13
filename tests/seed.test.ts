@@ -79,6 +79,8 @@ describe("demo seed dataset (docs/10, docs/17)", () => {
   it("labels seed data as illustrative rather than verified", () => {
     expect(state.buses.every((bus) => bus.provenance === "DEMO")).toBe(true);
     expect(state.events.every((event) => event.provenance === "DEMO")).toBe(true);
-    expect(state.eventRouteImpacts.every((impact) => impact.provenance === "DEMO")).toBe(true);
+    expect(state.eventRouteImpacts.every((impact) => impact.provenance === "CALCULATED")).toBe(
+      true,
+    );
   });
 });

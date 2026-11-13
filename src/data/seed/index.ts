@@ -6,11 +6,13 @@ import { DESTINATIONS } from "./destinations";
 import { ROUTES } from "./routes";
 import { BUSES } from "./buses";
 import { buildTimetableServices } from "./timetable";
-import { buildSeedEventImpacts, buildSeedEvents } from "./events";
+import { buildSeedEvents } from "./events";
+import { calculateAllEventImpacts } from "../../domain/calculations/eventImpact";
 import { DEMAND_SEED } from "./demand";
 import { validateState } from "../validation";
 
 export const SCHEMA_VERSION = 1;
+export const SEED_SCHEMA_VERSION = 1;
 export const SEED_VERSION = "safar-demo-2026-11";
 
 export interface SeedOptions {
@@ -36,6 +38,11 @@ function buildScenario(now: Date, scenarioDate?: string): ScenarioState {
 export function createSeedState(options: SeedOptions = {}): SafarState {
   const now = options.now ?? new Date();
   const scenario = buildScenario(now, options.scenarioDate);
+  const timetableServices = buildTimetableServices();
+  const events = buildSeedEvents(scenario.scenarioDate);
+  const eventRouteImpacts = events.flatMap((event) =>
+    calculateAllEventImpacts(event, ROUTES, { timetables: timetableServices, stops: STOPS }),
+  );
 
   const state: SafarState = {
     schemaVersion: SCHEMA_VERSION,
@@ -44,10 +51,12 @@ export function createSeedState(options: SeedOptions = {}): SafarState {
     destinations: DESTINATIONS,
     stops: STOPS,
     routes: ROUTES,
-    timetableServices: buildTimetableServices(),
+    timetableServices,
+    timetables: timetableServices,
     buses: BUSES,
-    events: buildSeedEvents(scenario.scenarioDate),
-    eventRouteImpacts: buildSeedEventImpacts(now),
+    events,
+    eventRouteImpacts,
+    eventImpacts: eventRouteImpacts,
     demandSeed: DEMAND_SEED,
     travelRequests: [],
     disruptionReports: [],
@@ -56,6 +65,7 @@ export function createSeedState(options: SeedOptions = {}): SafarState {
     alerts: [],
     auditEvents: [],
     scenario,
+    lastSavedAt: now.toISOString(),
   };
 
   const issues = validateState(state).filter((issue) => issue.level === "error");
@@ -68,6 +78,8 @@ export function createSeedState(options: SeedOptions = {}): SafarState {
   // Return an independent object graph so a reset can never alias live state.
   return structuredClone(state);
 }
+
+export const buildSeedState = createSeedState;
 
 /** Deep clone used for reset and for safe LocalStorage restore. */
 export function cloneSeedState(state: SafarState): SafarState {

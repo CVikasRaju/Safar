@@ -121,6 +121,10 @@ export function predictUpcomingEvents(state: SafarState, now: Date = new Date())
         : event.verificationStatus === "UNVERIFIED"
           ? "USER_REPORTED"
           : "AI_GENERATED";
+    const windowStart = event.impactWindow?.start ?? `${event.date}T${event.startTime}:00`;
+    const windowEnd = event.impactWindow?.end ?? `${event.date}T${event.endTime}:00`;
+    const crowd = event.expectedCrowdLevel ?? "MODERATE";
+    const loc = event.locationLabel ?? event.location ?? "Puttur region";
     predictions.push({
       id: `prediction-${event.id}`,
       title: event.name,
@@ -128,19 +132,19 @@ export function predictUpcomingEvents(state: SafarState, now: Date = new Date())
       status,
       statusLabel: PREDICTION_STATUS_LABELS[status],
       confidence: status === "VERIFIED" ? "HIGH" : "MEDIUM",
-      leadTimeHours: leadTimeHours(now, event.impactWindow.start),
-      startsAt: event.impactWindow.start,
-      endsAt: event.impactWindow.end,
-      locationLabel: event.locationLabel,
+      leadTimeHours: leadTimeHours(now, windowStart),
+      startsAt: windowStart,
+      endsAt: windowEnd,
+      locationLabel: loc,
       affectedVillageIds: event.nearbyVillageIds,
       affectedRouteIds,
-      expectedTrafficIncreasePct: CROWD_TRAFFIC_INCREASE[event.expectedCrowdLevel] ?? 25,
+      expectedTrafficIncreasePct: CROWD_TRAFFIC_INCREASE[crowd] ?? 25,
       estimatedExtraMinutes: extraMinutes,
       studentsAffected: studentsOnRoutes(state, affectedRouteIds),
       recommendedAlternative: alternativeFor(state, affectedRouteIds, event.affectedRouteIds),
       warning: `${EVENT_CATEGORY_LABELS[event.category] ?? event.category} with ${
-        CROWD_LEVEL_LABELS[event.expectedCrowdLevel] ?? event.expectedCrowdLevel
-      } crowd intensity: expect roughly ${CROWD_TRAFFIC_INCREASE[event.expectedCrowdLevel] ?? 25}% more traffic and about ${extraMinutes} min extra journey time on ${affectedRouteIds.join(", ") || "nearby routes"}.`,
+        CROWD_LEVEL_LABELS[crowd] ?? crowd
+      } crowd intensity: expect roughly ${CROWD_TRAFFIC_INCREASE[crowd] ?? 25}% more traffic and about ${extraMinutes} min extra journey time on ${affectedRouteIds.join(", ") || "nearby routes"}.`,
       disclaimer: `${PREDICTION_DISCLAIMER} Source: ${event.source}.`,
     });
   }

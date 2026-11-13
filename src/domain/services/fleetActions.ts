@@ -416,7 +416,7 @@ export function buildLiveScenarioSummary(state: SafarState): LiveScenarioOperati
     affectedRoutes: ["R101", "R104"],
     affectedStudentsCount: failedBus?.occupiedSeats ?? 41,
     eventImpact: {
-      eventId: event?.id ?? "evt-puttur-festival",
+      eventId: event?.id ?? "EVT001",
       eventName: event?.name ?? "Puttur Mahalingeshwara Temple Festival",
       riskLevel: impacts.find((i) => i.routeId === "R101")?.riskLevel ?? "HIGH",
       impactScore: impacts.find((i) => i.routeId === "R101")?.impactScore ?? 62,

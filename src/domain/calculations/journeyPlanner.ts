@@ -194,7 +194,9 @@ function eventOverlapForWindow(
   const endIso = minutesToIso(dateISO, endMinute);
   let best: EventOverlap | undefined;
   for (const { impact, event } of routeContext.eventImpacts) {
-    if (!rangesOverlap(startIso, endIso, event.impactWindow.start, event.impactWindow.end)) continue;
+    const windowStart = event.impactWindow?.start ?? `${event.date}T${event.startTime}:00`;
+    const windowEnd = event.impactWindow?.end ?? `${event.date}T${event.endTime}:00`;
+    if (!rangesOverlap(startIso, endIso, windowStart, windowEnd)) continue;
     const candidate: EventOverlap = {
       score: impact.impactScore,
       delayMinutes: impact.estimatedDelayMinutes ?? 0,

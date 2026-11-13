@@ -65,7 +65,7 @@ export function ReplacementRecommendationCard({
             ) : isNoCandidate ? (
               <Badge tone="critical">NO FEASIBLE REPLACEMENT</Badge>
             ) : (
-              <Badge tone="brand">AWAITING AUTHORITY APPROVAL</Badge>
+              <Badge tone="brand">Awaiting approval</Badge>
             )}
           </div>
         }

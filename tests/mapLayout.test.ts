@@ -43,7 +43,24 @@ describe("journey map plan and schematic fallback (docs/04, docs/10)", () => {
   });
 
   it("marks a predicted event that affects a route on the journey", () => {
-    const eventMarker = mapPlan.markers.find((marker) => marker.kind === "EVENT");
+    const townPlan = generateJourneyOptions(
+      state,
+      {
+        originVillageId: "v-kadaba",
+        destinationId: "d-pgc",
+        travelDate: "2026-11-14",
+        requiredArrivalTime: "09:00",
+      },
+      NOW,
+    );
+    const townJourney = townPlan.options.find((option) =>
+      option.usedRouteIds.includes("R104"),
+    );
+    expect(townJourney).toBeDefined();
+    if (!townJourney) throw new Error("Expected a journey using R104");
+
+    const townMapPlan = buildJourneyMapPlan(townJourney, stopsById, state.events);
+    const eventMarker = townMapPlan.markers.find((marker) => marker.kind === "EVENT");
     expect(eventMarker).toBeDefined();
     expect(eventMarker?.note).toContain("Predicted event impact");
   });

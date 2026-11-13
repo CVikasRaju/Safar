@@ -34,7 +34,7 @@ export function Badge({
   return (
     <span
       className={cx(
-        "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold leading-4 tracking-tight",
+        "inline-flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-semibold leading-4 tracking-tight",
         BADGE_TONES[tone],
         className,
       )}
@@ -74,7 +74,7 @@ export function CardHeader({
       <div className="flex items-start gap-2.5">
         {icon ? <span className="mt-0.5 text-brand">{icon}</span> : null}
         <div>
-          <h2 className="text-sm font-semibold tracking-tight text-ink">{title}</h2>
+          <h2 className="text-[15px] font-semibold tracking-tight text-ink">{title}</h2>
           {description ? (
             <p className="mt-0.5 max-w-2xl text-xs leading-relaxed text-muted">{description}</p>
           ) : null}
@@ -89,10 +89,10 @@ type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 
 const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
   primary:
-    "bg-brand text-abyss hover:bg-cyan-300 focus-visible:bg-cyan-300 border border-brand/60 font-semibold",
-  secondary: "border border-line-strong bg-panel-2 text-ink hover:border-brand/60 hover:text-brand",
+    "bg-brand text-white hover:bg-brand-deep focus-visible:bg-brand-deep border border-brand font-semibold",
+  secondary: "border border-line-strong bg-white text-ink hover:border-brand hover:text-brand",
   ghost: "border border-transparent text-ink-dim hover:border-line-strong hover:text-ink",
-  danger: "border border-red-400/50 bg-red-400/10 text-red-200 hover:bg-red-400/20",
+  danger: "border border-red-300 bg-red-50 text-red-800 hover:bg-red-100",
 };
 
 export function Button({
@@ -109,7 +109,7 @@ export function Button({
     <button
       type={type}
       className={cx(
-        "inline-flex items-center justify-center gap-1.5 rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+        "inline-flex items-center justify-center gap-1.5 rounded transition-colors disabled:cursor-not-allowed disabled:opacity-50",
         size === "sm" ? "px-2.5 py-1.5 text-xs" : "px-3.5 py-2 text-sm",
         BUTTON_VARIANTS[variant],
         className,
@@ -240,7 +240,7 @@ export function Notice({
 }) {
   const style = NOTICE_TONES[tone];
   return (
-    <div className={cx("flex gap-2.5 rounded-lg border p-3 text-xs leading-relaxed", style.wrapper, className)}>
+    <div className={cx("flex gap-2.5 rounded border p-3 text-xs leading-relaxed", style.wrapper, className)}>
       <span className="mt-0.5 shrink-0">{style.icon}</span>
       <div className="min-w-0 flex-1">
         {title ? <p className={cx("font-semibold", style.title)}>{title}</p> : null}
@@ -272,7 +272,7 @@ export function EmptyState({
   icon?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-line-strong px-4 py-8 text-center">
+    <div className="flex flex-col items-center gap-2 rounded border border-dashed border-line-strong bg-white px-4 py-8 text-center">
       {icon ? <span className="text-muted">{icon}</span> : null}
       <p className="text-sm font-medium text-ink">{title}</p>
       {body ? <p className="max-w-md text-xs leading-relaxed text-muted">{body}</p> : null}
@@ -299,7 +299,7 @@ export function SectionHeading({
   return (
     <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
       <div>
-        <h2 className="text-base font-semibold tracking-tight text-ink">{title}</h2>
+        <h2 className="text-[15px] font-semibold tracking-tight text-ink">{title}</h2>
         {description ? <p className="mt-0.5 text-xs text-muted">{description}</p> : null}
       </div>
       {action}

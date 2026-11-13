@@ -14,7 +14,7 @@ export function OperationalSummaryCard({ summary }: OperationalSummaryCardProps)
   return (
     <Card className="border-emerald-400/40 bg-panel shadow-xl">
       <CardHeader
-        title="Final Operational Summary — SAFAR Live Demonstration"
+        title="Operational summary"
         description="End-to-end outcome of disruption response and replacement allocation (docs/15 Scenario A)."
         icon={<Sparkles size={18} className="text-emerald-300" />}
         action={<Badge tone="success">Operational Consensus Reached</Badge>}

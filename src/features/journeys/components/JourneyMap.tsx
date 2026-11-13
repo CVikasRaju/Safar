@@ -13,11 +13,11 @@ import {
 } from "../mapLayout";
 
 const MARKER_STYLES: Record<JourneyMapMarkerKind, { color: string; glyph: string; size: number }> = {
-  ORIGIN: { color: "#22d3ee", glyph: "A", size: 22 },
-  DESTINATION: { color: "#34d399", glyph: "B", size: 22 },
-  STOP: { color: "#93c5fd", glyph: "•", size: 16 },
-  TRANSFER: { color: "#fbbf24", glyph: "T", size: 20 },
-  EVENT: { color: "#f87171", glyph: "!", size: 20 },
+  ORIGIN: { color: "#0b5394", glyph: "A", size: 22 },
+  DESTINATION: { color: "#0f766e", glyph: "B", size: 22 },
+  STOP: { color: "#64748b", glyph: "•", size: 16 },
+  TRANSFER: { color: "#b45309", glyph: "T", size: 20 },
+  EVENT: { color: "#b91c1c", glyph: "!", size: 20 },
 };
 
 const LEGEND: Array<{ label: string; className: string }> = [
@@ -31,7 +31,7 @@ function SchematicMap({ plan }: { plan: JourneyMapPlan }) {
   const layout = useMemo(() => buildSchematicLayout(plan), [plan]);
 
   return (
-    <div className="overflow-hidden rounded-lg border border-line bg-abyss">
+    <div className="overflow-hidden rounded border border-line bg-white">
       <svg
         viewBox={`0 0 ${layout.width} ${layout.height}`}
         className="h-[300px] w-full sm:h-[340px]"
@@ -40,7 +40,7 @@ function SchematicMap({ plan }: { plan: JourneyMapPlan }) {
       >
         <defs>
           <pattern id="safar-grid" width="40" height="40" patternUnits="userSpaceOnUse">
-            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#142135" strokeWidth="1" />
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#e2e8f0" strokeWidth="1" />
           </pattern>
         </defs>
         <rect width={layout.width} height={layout.height} fill="url(#safar-grid)" />
@@ -50,7 +50,7 @@ function SchematicMap({ plan }: { plan: JourneyMapPlan }) {
             key={path.id}
             points={path.points.map((point) => `${point.x},${point.y}`).join(" ")}
             fill="none"
-            stroke={path.kind === "BUS" ? "#22d3ee" : "#fbbf24"}
+            stroke={path.kind === "BUS" ? "#0b5394" : "#b45309"}
             strokeWidth={path.kind === "BUS" ? 3.5 : 2}
             strokeDasharray={path.kind === "WALK" ? "6 6" : undefined}
             strokeLinecap="round"
@@ -68,7 +68,7 @@ function SchematicMap({ plan }: { plan: JourneyMapPlan }) {
                 cy={marker.y}
                 r={style.size / 2}
                 fill={style.color}
-                stroke="#050a12"
+                stroke="#ffffff"
                 strokeWidth="2"
               />
               <text
@@ -77,7 +77,7 @@ function SchematicMap({ plan }: { plan: JourneyMapPlan }) {
                 textAnchor="middle"
                 fontSize="9"
                 fontWeight="700"
-                fill="#050a12"
+                fill="#ffffff"
               >
                 {style.glyph}
               </text>
@@ -136,7 +136,7 @@ export function JourneyMap({ journey }: { journey: JourneyOption }) {
         L.polyline(
           path.points.map((point) => [point.lat, point.lon] as [number, number]),
           {
-            color: path.kind === "BUS" ? "#22d3ee" : "#fbbf24",
+            color: path.kind === "BUS" ? "#0b5394" : "#b45309",
             weight: path.kind === "BUS" ? 4 : 2,
             dashArray: path.kind === "WALK" ? "6 6" : undefined,
             opacity: 0.9,

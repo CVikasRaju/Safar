@@ -97,25 +97,11 @@ export function GovernmentControlCentrePage() {
 
   return (
     <div className="space-y-5">
-      {/* Top Authority Header */}
-      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-line pb-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="grid h-8 w-8 place-items-center rounded-lg border border-brand/40 bg-brand/10 text-brand">
-              <ShieldCheck size={18} />
-            </span>
-            <h1 className="text-xl font-bold tracking-tight text-ink">
-              Government Control Centre
-            </h1>
-            <Badge tone="brand">Transport Authority Workspace</Badge>
-          </div>
-          <p className="mt-1 text-xs text-ink-dim max-w-2xl leading-relaxed">
-            Real-time rural transit command, fleet operations, capacity monitoring, immediate breakdown response,
-            and automated multi-criteria replacement dispatch (Puttur regional network).
-          </p>
-        </div>
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-3">
+        <p className="text-xs text-muted">
+          Puttur regional network · {state.buses.length} buses · demonstration data
+        </p>
 
-        {/* Global Quick Action CTAs */}
         <div className="flex flex-wrap items-center gap-2">
           <Button
             variant="danger"
@@ -126,15 +112,15 @@ export function GovernmentControlCentrePage() {
               if (defaultOperatingBus) setBreakdownTargetBus(defaultOperatingBus);
             }}
           >
-            <AlertTriangle size={14} /> Simulate Bus Breakdown
+            <AlertTriangle size={14} /> Simulate breakdown
           </Button>
 
           <Button variant="primary" size="sm" onClick={handleRunLiveScenario}>
-            <Play size={14} /> Run SAFAR Live Scenario
+            <Play size={14} /> Run emergency scenario
           </Button>
 
           <Button variant="secondary" size="sm" onClick={resetDemoData}>
-            <RefreshCw size={13} /> Reset Scenario
+            <RefreshCw size={13} /> Reset demo
           </Button>
         </div>
       </div>
@@ -147,12 +133,13 @@ export function GovernmentControlCentrePage() {
               <ShieldAlert size={18} />
             </span>
             <div>
-              <p className="font-bold text-red-200">
-                ACTIVE DISRUPTION DETECTED — IMMEDIATE AUTHORITY RESPONSE REQUIRED
+              <p className="font-semibold text-red-800">
+                Active incident — replacement review required
               </p>
-              <p className="mt-0.5 text-ink-dim leading-relaxed">
+              <p className="mt-0.5 leading-relaxed text-ink-dim">
                 {activeIncidents.length} confirmed operational incident(s). Bus breakdown on{" "}
-                <strong>{activeIncidents[0]?.routeId ?? "network"}</strong>. Review ranked replacement options.
+                <strong>{activeIncidents[0]?.routeId ?? "network"}</strong>. Review the ranked
+                replacement options.
               </p>
             </div>
           </div>
@@ -162,7 +149,7 @@ export function GovernmentControlCentrePage() {
             size="sm"
             onClick={() => setActiveTab("recommendations")}
           >
-            Review Replacement Proposal →
+            Review replacement options
           </Button>
         </div>
       ) : null}
@@ -179,7 +166,7 @@ export function GovernmentControlCentrePage() {
               : "text-ink-dim hover:bg-panel-2 hover:text-ink",
           )}
         >
-          <Layers size={14} /> Operational Overview
+          <Layers size={14} /> Overview
         </button>
 
         <button
@@ -192,7 +179,7 @@ export function GovernmentControlCentrePage() {
               : "text-ink-dim hover:bg-panel-2 hover:text-ink",
           )}
         >
-          <BusIcon size={14} /> Fleet Operations & Management
+          <BusIcon size={14} /> Fleet
           <span className="rounded-full bg-panel-2 px-1.5 py-0.2 text-[10px] text-muted">
             {state.buses.length}
           </span>
@@ -208,7 +195,7 @@ export function GovernmentControlCentrePage() {
               : "text-ink-dim hover:bg-panel-2 hover:text-ink",
           )}
         >
-          <ShieldCheck size={14} /> Replacement Recommendations
+          <ShieldCheck size={14} /> Replacements
           {state.replacementRecommendations.length > 0 ? (
             <span className="rounded-full bg-red-400/20 px-1.5 py-0.2 text-[10px] font-bold text-red-200">
               {state.replacementRecommendations.length}
@@ -226,7 +213,7 @@ export function GovernmentControlCentrePage() {
               : "text-ink-dim hover:bg-panel-2 hover:text-ink",
           )}
         >
-          <Sparkles size={14} className="text-brand" /> SAFAR Live Scenario
+          <Sparkles size={14} className="text-brand" /> Scenario
         </button>
       </div>
 
@@ -245,8 +232,8 @@ export function GovernmentControlCentrePage() {
             {/* Active Incident Summary */}
             <Card>
               <CardHeader
-                title="Active Operational Disruption Status"
-                description="Real-time incidents confirmed by transport authorities requiring coordination."
+                title="Operational status"
+                description="Confirmed incidents from the shared demonstration state."
                 icon={<AlertTriangle size={16} className="text-amber-300" />}
               />
               {activeIncidents.length > 0 ? (
@@ -275,7 +262,7 @@ export function GovernmentControlCentrePage() {
               ) : (
                 <div className="mt-3 rounded-lg border border-dashed border-line p-4 text-center text-xs text-muted">
                   <CheckCircle2 size={24} className="mx-auto text-emerald-400 mb-1.5" />
-                  <p className="font-semibold text-ink">All Routes Operating Normally</p>
+                  <p className="font-semibold text-ink">All routes operating normally</p>
                   <p className="mt-0.5">No active confirmed breakdowns on the rural network.</p>
                 </div>
               )}
@@ -331,7 +318,7 @@ export function GovernmentControlCentrePage() {
           <Card>
             <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
               <div>
-                <p className="font-semibold text-ink">Fleet Overview Snapshot</p>
+                <p className="font-semibold text-ink">Fleet overview</p>
                 <p className="text-[11px] text-muted">
                   Inspect bus locations, seat occupancies, and operational statuses.
                 </p>

@@ -48,10 +48,10 @@ export function ControlCentreDashboard() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-2xl">
             <Badge tone="brand">
-              <ShieldCheck size={11} /> Government Control Centre
+              <ShieldCheck size={11} /> Control centre
             </Badge>
             <h1 className="mt-2 text-xl font-semibold tracking-tight text-ink sm:text-2xl">
-              Emergency intelligence
+              Four-condition emergency simulation
             </h1>
             <p className="mt-1.5 text-sm leading-relaxed text-ink-dim">
               One combined scenario: two buses break down, demand rises by exactly 40%, a road floods
@@ -60,10 +60,10 @@ export function ControlCentreDashboard() {
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               <Button variant="danger" onClick={runScenario}>
-                <AlertTriangle size={14} /> RUN EMERGENCY SCENARIO
+                <AlertTriangle size={14} /> Start simulation
               </Button>
               <Button variant="secondary" onClick={resetScenario} disabled={!emergency}>
-                <RotateCcw size={14} /> RESET EMERGENCY SCENARIO
+                <RotateCcw size={14} /> Reset simulation
               </Button>
             </div>
           </div>
@@ -127,12 +127,12 @@ export function ControlCentreDashboard() {
           </div>
           <div className="mt-4">
             <EmptyState
-              title="Emergency engine idle"
+              title="Simulation not running"
               body="Everything remains at the documented baseline: 420 students, 350 seats, 70 seat shortage, all buses operating and all roads open."
               icon={<ShieldCheck size={20} />}
               action={
                 <Button variant="danger" size="sm" onClick={runScenario}>
-                  <AlertTriangle size={14} /> RUN EMERGENCY SCENARIO
+                  <AlertTriangle size={14} /> Start simulation
                 </Button>
               }
             />
@@ -140,7 +140,7 @@ export function ControlCentreDashboard() {
         </Card>
       ) : (
         <>
-          <Notice tone="warning" title="Simulated emergency scenario — all values are calculated, not hardcoded">
+          <Notice tone="warning" title="Simulated emergency — values are calculated from the scenario inputs">
             The engine recomputed demand, seat supply, allocations, detours and walking legs from the
             scenario inputs below. Reset restores the original fleet, roads and allocations, and the
             scenario can be run again without duplicating any student.
